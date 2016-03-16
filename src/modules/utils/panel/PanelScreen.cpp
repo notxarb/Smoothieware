@@ -95,3 +95,8 @@ void PanelScreen::on_main_loop()
         THEKERNEL->call_event(ON_CONSOLE_LINE_RECEIVED, &message );
     }
 }
+
+PanelScreen *PanelScreen::get_parent()
+{
+    return this->parent;
+}

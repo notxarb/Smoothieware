@@ -152,3 +152,8 @@ void MainMenuScreen::abort_playing()
     THEPANEL->enter_screen(this->watch_screen);
 }
 
+PanelScreen *MainMenuScreen::get_watch_screen()
+{
+    return this->watch_screen;
+}
+

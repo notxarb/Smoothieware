@@ -31,6 +31,7 @@ public:
     virtual void display_menu_line(uint16_t line) = 0;
     // default idle timeout for a screen, each screen can override this
     virtual int idle_timeout_secs(){ return 10; }
+    PanelScreen *get_parent();
 
     friend class Panel;
 protected:
