@@ -430,13 +430,25 @@ void ZProbe::on_gcode_received(void *argument)
                     pin.set_inverting(pin.is_inverting() != invert_override); // XOR so inverted pin is not inverted and vice versa
                 }
                 break;
+            case 671:
+                float x_axis, y_axis, z_axis;
+                if (gcode->has_letter('X')) x_axis = gcode->get_value('X');
+                if (gcode->has_letter('Y')) y_axis = gcode->get_value('Y');
+                if (gcode->has_letter('Z')) z_axis = gcode->get_value('Z');
+                THEKERNEL->robot->set_last_probe_position(std::make_tuple(x_axis, y_axis, z_axis, 1));
+                break;
 
             case 500: // save settings
             case 503: // print settings
-                gcode->stream->printf(";Probe feedrates Slow/fast(K)/Return (mm/sec) max_z (mm) height (mm):\nM670 S%1.2f K%1.2f R%1.2f Z%1.2f H%1.2f\n",
-                    this->slow_feedrate, this->fast_feedrate, this->return_feedrate, this->max_z, this->probe_height);
+                {
+                    auto probe_position = THEKERNEL->robot->get_last_probe_position();
+                    gcode->stream->printf(";Probe feedrates Slow/fast(K)/Return (mm/sec) max_z (mm) height (mm):\nM670 S%1.2f K%1.2f R%1.2f Z%1.2f H%1.2f\n",
+                        this->slow_feedrate, this->fast_feedrate, this->return_feedrate, this->max_z, this->probe_height);
+                    gcode->stream->printf(";Probe position X Y Z:\nM671 X%1.4f Y%1.4f Z%1.4f\n",
+                        std::get<0>(probe_position), std::get<1>(probe_position), std::get<2>(probe_position));
+                    // fall through is intended so leveling strategies can handle m-codes too
 
-                // fall through is intended so leveling strategies can handle m-codes too
+                }
 
             default:
                 for(auto s : strategies){
