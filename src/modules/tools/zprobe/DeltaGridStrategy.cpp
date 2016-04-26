@@ -5,7 +5,7 @@
     Summary
     -------
     Probes grid_size points in X and Y (total probes grid_size * grid_size) and stores the relative offsets from the 0,0 Z height
-    When enabled everymove will calcualte the Z offset based on interpolating the height offset within the grids nearest 4 points.
+    When enabled every move will calculate the Z offset based on interpolating the height offset within the grids nearest 4 points.
 
     Configuration
     -------------
@@ -173,7 +173,7 @@ bool DeltaGridStrategy::load_grid(StreamOutput *stream)
 {
     FILE *fp = fopen(GRIDFILE, "r");
     if(fp == NULL) {
-        if(stream != nullptr) stream->printf("error:Failed to open grid %s\n", GRIDFILE);
+        stream->printf("error:Failed to open grid %s\n", GRIDFILE);
         return false;
     }
 
@@ -181,38 +181,38 @@ bool DeltaGridStrategy::load_grid(StreamOutput *stream)
     float radius;
 
     if(fread(&size, sizeof(uint8_t), 1, fp) != 1) {
-        if(stream != nullptr) stream->printf("error:Failed to read grid size\n");
+        stream->printf("error:Failed to read grid size\n");
         fclose(fp);
         return false;
     }
 
     if(size != grid_size) {
-        if(stream != nullptr) stream->printf("error:grid size is different read %d - config %d\n", size, grid_size);
+        stream->printf("error:grid size is different read %d - config %d\n", size, grid_size);
         fclose(fp);
         return false;
     }
 
     if(fread(&radius, sizeof(float), 1, fp) != 1) {
-        if(stream != nullptr) stream->printf("error:Failed to read grid radius\n");
+        stream->printf("error:Failed to read grid radius\n");
         fclose(fp);
         return false;
     }
 
     if(radius != grid_radius) {
-        if(stream != nullptr) stream->printf("warning:grid radius is different read %f - config %f, overriding config\n", radius, grid_radius);
+        stream->printf("warning:grid radius is different read %f - config %f, overriding config\n", radius, grid_radius);
         grid_radius= radius;
     }
 
     for (int y = 0; y < grid_size; y++) {
         for (int x = 0; x < grid_size; x++) {
             if(fread(&grid[x + (grid_size*y)], sizeof(float), 1, fp) != 1) {
-                if(stream != nullptr) stream->printf("error:Failed to read grid\n");
+                stream->printf("error:Failed to read grid\n");
                 fclose(fp);
                 return false;
             }
         }
     }
-    if(stream != nullptr) stream->printf("grid loaded from %s with radius %f and size %d\n", GRIDFILE, grid_radius, grid_size);
+    stream->printf("grid loaded, radius: %f, size: %d\n", grid_radius, grid_size);
     fclose(fp);
     return true;
 }
@@ -304,7 +304,7 @@ bool DeltaGridStrategy::handleGcode(Gcode *gcode)
             THEKERNEL->conveyor->wait_for_empty_queue();
 
             if(!doProbe(gcode)) {
-                gcode->stream->printf("Probe failed to complete\n");
+                gcode->stream->printf("Probe failed to complete, check the initial probe height and/or initial_height settings\n");
             } else {
                 gcode->stream->printf("Probe completed\n");
             }
@@ -335,6 +335,7 @@ bool DeltaGridStrategy::handleGcode(Gcode *gcode)
             } else {
                 if(load_grid(gcode->stream)) setAdjustFunction(true);
             }
+            return true;
 
         } else if(gcode->m == 565) { // M565: Set Z probe offsets
             float x = 0, y = 0, z = 0;
@@ -401,12 +402,8 @@ float DeltaGridStrategy::findBed()
 
     // leave the probe zprobe->getProbeHeight() above bed
     zprobe->return_probe(s);
-    float dz= zprobe->getProbeHeight() - zprobe->zsteps_to_mm(s);
-    if(dz >= 0) {
-        // probe was not started above bed
-        return NAN;
-    }
 
+    float dz= zprobe->getProbeHeight() - zprobe->zsteps_to_mm(s);
     zprobe->coordinated_move(NAN, NAN, dz, zprobe->getFastFeedrate(), true); // relative move
 
     return zprobe->zsteps_to_mm(s) + deltaz - zprobe->getProbeHeight(); // distance to move from home to 5mm above bed
@@ -414,6 +411,7 @@ float DeltaGridStrategy::findBed()
 
 bool DeltaGridStrategy::doProbe(Gcode *gc)
 {
+    gc->stream->printf("Delta Grid Probe...\n");
     setAdjustFunction(false);
     reset_bed_level();
 
@@ -427,7 +425,7 @@ bool DeltaGridStrategy::doProbe(Gcode *gc)
         return false;
     }
 
-    gc->stream->printf("Probe start ht is %f mm, probe radius is %f mm\n", initial_z, radius);
+    gc->stream->printf("Probe start ht is %f mm, probe radius is %f mm, grid size is %dx%d\n", initial_z, radius, grid_size, grid_size);
 
     // do first probe for 0,0
     int s;

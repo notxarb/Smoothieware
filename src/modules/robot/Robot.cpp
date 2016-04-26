@@ -51,6 +51,7 @@ using std::string;
 #define  y_axis_max_speed_checksum           CHECKSUM("y_axis_max_speed")
 #define  z_axis_max_speed_checksum           CHECKSUM("z_axis_max_speed")
 #define  segment_z_moves_checksum            CHECKSUM("segment_z_moves")
+#define  save_g92_checksum                   CHECKSUM("save_g92")
 
 // arm solutions
 #define  arm_solution_checksum               CHECKSUM("arm_solution")
@@ -187,6 +188,7 @@ void Robot::load_config()
     this->max_speeds[Z_AXIS]  = THEKERNEL->config->value(z_axis_max_speed_checksum    )->by_default(  300.0F)->as_number() / 60.0F;
 
     this->segment_z_moves     = THEKERNEL->config->value(segment_z_moves_checksum     )->by_default(true)->as_bool();
+    this->save_g92            = THEKERNEL->config->value(save_g92_checksum            )->by_default(false)->as_bool();
 
     // Make our 3 StepperMotors
     uint16_t const checksums[][5] = {
@@ -271,10 +273,10 @@ int Robot::print_position(uint8_t subcode, char *buf, size_t bufsize) const
         wcs_t pos= mcs2wcs(last_milestone);
         n = snprintf(buf, bufsize, "C: X:%1.4f Y:%1.4f Z:%1.4f", from_millimeters(std::get<X_AXIS>(pos)), from_millimeters(std::get<Y_AXIS>(pos)), from_millimeters(std::get<Z_AXIS>(pos)));
 
-    } else if(subcode == 4) { // M114.3 print last milestone (which should be the same as machine position if axis are not moving and no level compensation)
+    } else if(subcode == 4) { // M114.4 print last milestone (which should be the same as machine position if axis are not moving and no level compensation)
         n = snprintf(buf, bufsize, "LMS: X:%1.4f Y:%1.4f Z:%1.4f", last_milestone[X_AXIS], last_milestone[Y_AXIS], last_milestone[Z_AXIS]);
 
-    } else if(subcode == 5) { // M114.4 print last machine position (which should be the same as M114.1 if axis are not moving and no level compensation)
+    } else if(subcode == 5) { // M114.5 print last machine position (which should be the same as M114.1 if axis are not moving and no level compensation)
         n = snprintf(buf, bufsize, "LMP: X:%1.4f Y:%1.4f Z:%1.4f", last_machine_position[X_AXIS], last_machine_position[Y_AXIS], last_machine_position[Z_AXIS]);
 
     } else {
@@ -295,10 +297,10 @@ int Robot::print_position(uint8_t subcode, char *buf, size_t bufsize) const
             wcs_t pos= mcs2wcs(mpos);
             n = snprintf(buf, bufsize, "C: X:%1.4f Y:%1.4f Z:%1.4f", from_millimeters(std::get<X_AXIS>(pos)), from_millimeters(std::get<Y_AXIS>(pos)), from_millimeters(std::get<Z_AXIS>(pos)));
 
-        } else if(subcode == 2) { // M114.1 print realtime Machine coordinate system
+        } else if(subcode == 2) { // M114.2 print realtime Machine coordinate system
             n = snprintf(buf, bufsize, "MPOS: X:%1.4f Y:%1.4f Z:%1.4f", mpos[X_AXIS], mpos[Y_AXIS], mpos[Z_AXIS]);
 
-        } else if(subcode == 3) { // M114.2 print realtime actuator position
+        } else if(subcode == 3) { // M114.3 print realtime actuator position
             n = snprintf(buf, bufsize, "APOS: A:%1.4f B:%1.4f C:%1.4f", current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS]);
         }
     }
@@ -455,9 +457,9 @@ void Robot::on_gcode_received(void *argument)
 
     } else if( gcode->has_m) {
         switch( gcode->m ) {
-            case 0: // M0 feed hold
-                if(THEKERNEL->is_grbl_mode()) THEKERNEL->set_feed_hold(true);
-                break;
+            // case 0: // M0 feed hold, (M0.1 is release feed hold, except we are in feed hold)
+            //     if(THEKERNEL->is_grbl_mode()) THEKERNEL->set_feed_hold(gcode->subcode == 0);
+            //     break;
 
             case 30: // M30 end of program in grbl mode (otherwise it is delete sdcard file)
                 if(!THEKERNEL->is_grbl_mode()) break;
@@ -617,12 +619,14 @@ void Robot::on_gcode_received(void *argument)
                     }
                     ++n;
                 }
-                // linuxcnc saves G92, so we do too
-                // also it needs to be used to set Z0 on rotary deltas as M206/306 can't be used, so saving it is necessary
-                if(g92_offset != wcs_t(0, 0, 0)) {
-                    float x, y, z;
-                    std::tie(x, y, z) = g92_offset;
-                    gcode->stream->printf("G92.3 X%f Y%f Z%f\n", x, y, z); // sets G92 to the specified values
+                if(save_g92) {
+                    // linuxcnc saves G92, so we do too if configured, default is to not save to maintain backward compatibility
+                    // also it needs to be used to set Z0 on rotary deltas as M206/306 can't be used, so saving it is necessary in that case
+                    if(g92_offset != wcs_t(0, 0, 0)) {
+                        float x, y, z;
+                        std::tie(x, y, z) = g92_offset;
+                        gcode->stream->printf("G92.3 X%f Y%f Z%f\n", x, y, z); // sets G92 to the specified values
+                    }
                 }
             }
             break;
@@ -825,6 +829,13 @@ bool Robot::append_milestone(Gcode * gcode, const float target[], float rate_mm_
     ActuatorCoordinates actuator_pos;
     float transformed_target[3]; // adjust target for bed compensation and WCS offsets
     float millimeters_of_travel;
+
+    // catch negative or zero feed rates and return the same error as GRBL does
+    if(rate_mm_s <= 0.0F) {
+        gcode->is_error= true;
+        gcode->txt_after_ok= (rate_mm_s == 0 ? "Undefined feed rate" : "feed rate < 0");
+        return false;
+    }
 
     // unity transform by default
     memcpy(transformed_target, target, sizeof(transformed_target));
