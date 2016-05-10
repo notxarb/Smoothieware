@@ -48,9 +48,11 @@ class Player : public Module {
         StreamOutput* reply_stream;
 
         FILE* current_file_handler;
+        FILE* time_file;
         long file_size;
         unsigned long played_cnt;
         unsigned long elapsed_secs;
+        unsigned long total_minutes;
         float saved_position[3];
         std::map<uint16_t, float> saved_temperatures;
         struct {

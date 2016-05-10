@@ -53,6 +53,8 @@ Player::Player()
     this->reply_stream = nullptr;
     this->suspended= false;
     this->suspend_loops= 0;
+    this->total_minutes= 0;
+    this->time_file= nullptr;
 }
 
 void Player::on_module_loaded()
@@ -72,11 +74,23 @@ void Player::on_module_loaded()
     std::replace( this->after_suspend_gcode.begin(), this->after_suspend_gcode.end(), '_', ' '); // replace _ with space
     std::replace( this->before_resume_gcode.begin(), this->before_resume_gcode.end(), '_', ' '); // replace _ with space
     this->leave_heaters_on = THEKERNEL->config->value(leave_heaters_on_suspend_checksum)->by_default(false)->as_bool();
+
+    this->time_file = fopen("/sd/total_minutes", "r+");
+    if (this->time_file != NULL) {
+        fscanf(this->time_file, "total minutes: %lu", &this->total_minutes);
+    }
+    fclose(this->time_file);
 }
 
 void Player::on_second_tick(void *)
 {
     if(this->playing_file) this->elapsed_secs++;
+    if(this->playing_file && ((this->elapsed_secs % 60) == 0)) {
+        this->total_minutes++;
+        // fseek(this->time_file, 0, SEEK_SET);
+        // fprintf(this->time_file, "total minutes: %lu\n", this->total_minutes);
+        fflush(this->time_file);
+    }
 }
 
 // extract any options found on line, terminates args at the space before the first option (-v)
@@ -109,9 +123,13 @@ void Player::on_gcode_received(void *argument)
 
             if(this->current_file_handler != NULL) {
                 this->playing_file = false;
+                fflush(this->time_file);
                 fclose(this->current_file_handler);
+                fprintf(this->time_file, "total minutes: %lu\n", this->total_minutes);
+                fclose(this->time_file);
             }
             this->current_file_handler = fopen( this->filename.c_str(), "r");
+            this->time_file = fopen("/sd/total_minutes", "w+");
 
             if(this->current_file_handler == NULL) {
                 gcode->stream->printf("file.open failed: %s\r\n", this->filename.c_str());
@@ -145,6 +163,7 @@ void Player::on_gcode_received(void *argument)
 
         } else if (gcode->m == 25) { // pause print
             this->playing_file = false;
+            fflush(this->time_file);
 
         } else if (gcode->m == 26) { // Reset print. Slightly different than M26 in Marlin and the rest
             if(this->current_file_handler != NULL) {
@@ -157,6 +176,7 @@ void Player::on_gcode_received(void *argument)
                 if(!currentfn.empty()) {
                     // reload the last file opened
                     this->current_file_handler = fopen(currentfn.c_str() , "r");
+                    this->time_file = fopen("/sd/total_minutes", "w+");
 
                     if(this->current_file_handler == NULL) {
                         gcode->stream->printf("file.open failed: %s\r\n", currentfn.c_str());
@@ -180,10 +200,14 @@ void Player::on_gcode_received(void *argument)
 
             if(this->current_file_handler != NULL) {
                 this->playing_file = false;
+                fflush(this->time_file);
                 fclose(this->current_file_handler);
+                fprintf(this->time_file, "total minutes: %lu\n", this->total_minutes);
+                fclose(this->time_file);
             }
 
             this->current_file_handler = fopen( this->filename.c_str(), "r");
+            this->time_file = fopen("/sd/total_minutes", "w+");
             if(this->current_file_handler == NULL) {
                 gcode->stream->printf("file.open failed: %s\r\n", this->filename.c_str());
             } else {
@@ -268,9 +292,12 @@ void Player::play_command( string parameters, StreamOutput *stream )
 
     if(this->current_file_handler != NULL) { // must have been a paused print
         fclose(this->current_file_handler);
+        fprintf(this->time_file, "total minutes: %lu\n", this->total_minutes);
+        fclose(this->time_file);
     }
 
     this->current_file_handler = fopen( this->filename.c_str(), "r");
+    this->time_file = fopen("/sd/total_minutes", "w+");
     if(this->current_file_handler == NULL) {
         stream->printf("File not found: %s\r\n", this->filename.c_str());
         return;
@@ -359,6 +386,8 @@ void Player::abort_command( string parameters, StreamOutput *stream )
     this->filename = "";
     this->current_stream = NULL;
     fclose(current_file_handler);
+    fprintf(this->time_file, "total minutes: %lu\n", this->total_minutes);
+    fclose(this->time_file);
     current_file_handler = NULL;
     if(parameters.empty()) {
         // clear out the block queue, will wait until queue is empty
@@ -427,10 +456,13 @@ void Player::on_main_loop(void *argument)
         }
 
         this->playing_file = false;
+        fflush(this->time_file);
         this->filename = "";
         played_cnt = 0;
         file_size = 0;
         fclose(this->current_file_handler);
+        fprintf(this->time_file, "total minutes: %lu\n", this->total_minutes);
+        fclose(this->time_file);
         current_file_handler = NULL;
         this->current_stream = NULL;
 
@@ -507,6 +539,7 @@ void Player::suspend_command(string parameters, StreamOutput *stream )
     if( this->playing_file ) {
         // pause an sd print
         this->playing_file = false;
+        fflush(this->time_file);
         this->was_playing_file= true;
     }else{
         // send pause to upstream host, we send it on all ports as we don't know which it is on
