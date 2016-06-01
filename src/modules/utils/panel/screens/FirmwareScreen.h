@@ -27,8 +27,7 @@ class FirmwareScreen : public PanelScreen {
         uint16_t count_folder_content();
         std::string file_at(uint16_t line, bool& isdir);
         bool filter_file(const char *f);
-
-        std::string firmware_path;
+        bool done_copy;
 };
 
 #endif

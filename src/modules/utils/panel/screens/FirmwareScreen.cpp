@@ -14,6 +14,10 @@
 #include "libs/nuts_bolts.h"
 #include "libs/utils.h"
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <iterator>
 #include "libs/SerialMessage.h"
 #include "StreamOutput.h"
 #include "DirHandle.h"
@@ -23,6 +27,7 @@ using std::string;
 
 FirmwareScreen::FirmwareScreen()
 {
+    this->done_copy = false;
 }
 
 // When entering this screen
@@ -37,7 +42,7 @@ void FirmwareScreen::on_enter()
 void FirmwareScreen::on_exit()
 {
     // reset to root directory, I think this is less confusing
-    THEKERNEL->current_path= "/";
+    THEKERNEL->current_path= "/ext";
 }
 
 // For every ( potential ) refresh of the screen
@@ -108,11 +113,22 @@ void FirmwareScreen::clicked_line(uint16_t line)
             this->enter_folder(path.c_str());
             return;
         }
+        // Copy file to internal SD Card
 
-        // start printing that file...
-        this->play_path = path;
-        this->start_play = true;
+        std::ifstream source(path.c_str(), std::ios::binary);
+        std::ofstream dest("/sd/firmware.bin", std::ios::binary);
+
+        std::istreambuf_iterator<char> begin_source(source);
+        std::istreambuf_iterator<char> end_source;
+        std::ostreambuf_iterator<char> begin_dest(dest); 
+        copy(begin_source, end_source, begin_dest);
+
+        source.close();
+        dest.close();
+        this->done_copy = true;
     }
+
+
 }
 
 // only filter files that have a .g, .ngc or .nc in them and does not start with a .
@@ -120,9 +136,7 @@ bool FirmwareScreen::filter_file(const char *f)
 {
     string fn= lc(f);
     return (fn.at(0) != '.') &&
-             ((fn.find(".g") != string::npos) ||
-              (fn.find(".ngc") != string::npos) ||
-              (fn.find(".nc") != string::npos));
+             (fn.find(".bin") != string::npos);
 }
 
 // Find the "line"th file in the current folder
@@ -168,10 +182,8 @@ uint16_t FirmwareScreen::count_folder_content()
 
 void FirmwareScreen::on_main_loop()
 {
-    if (this->start_play) {
-        this->start_play = false;
-        THEPANEL->set_playing_file(this->play_path);
-        this->play(this->play_path.c_str());
+    if (this->done_copy) {
+        this->done_copy = false;
         THEPANEL->enter_screen(this->parent);
         return;
     }

@@ -12,6 +12,7 @@
 #include "MainMenuScreen.h"
 #include "WatchScreen.h"
 #include "FileScreen.h"
+#include "firmwareScreen.h"
 #include "JogScreen.h"
 #include "ControlScreen.h"
 #include "PrepareScreen.h"
@@ -38,6 +39,7 @@ MainMenuScreen::MainMenuScreen()
     this->jog_screen     = (new JogScreen()     )->set_parent(this);
     this->watch_screen   = (new WatchScreen()   )->set_parent(this);
     this->file_screen    = (new FileScreen()    )->set_parent(this);
+    this->firmware_screen = (new FirmwareScreen())->set_parent(this);
     this->prepare_screen = (new PrepareScreen() )->set_parent(this);
     this->set_parent(this->watch_screen);
 }
