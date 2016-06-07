@@ -14,10 +14,10 @@
 #include "libs/nuts_bolts.h"
 #include "libs/utils.h"
 #include <string>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <iterator>
+// #include <iostream>
+// #include <fstream>
+// #include <algorithm>
+// #include <iterator>
 #include "libs/SerialMessage.h"
 #include "StreamOutput.h"
 #include "DirHandle.h"
@@ -33,7 +33,9 @@ FirmwareScreen::FirmwareScreen()
 // When entering this screen
 void FirmwareScreen::on_enter()
 {
+
     THEPANEL->lcd->clear();
+    THEKERNEL->current_path= "/ext";
 
     // Default folder to enter
     this->enter_folder(THEKERNEL->current_path.c_str());
@@ -42,7 +44,7 @@ void FirmwareScreen::on_enter()
 void FirmwareScreen::on_exit()
 {
     // reset to root directory, I think this is less confusing
-    THEKERNEL->current_path= "/ext";
+    THEKERNEL->current_path= "/";
 }
 
 // For every ( potential ) refresh of the screen
@@ -115,16 +117,22 @@ void FirmwareScreen::clicked_line(uint16_t line)
         }
         // Copy file to internal SD Card
 
-        std::ifstream source(path.c_str(), std::ios::binary);
-        std::ofstream dest("/sd/firmware.bin", std::ios::binary);
+        char buf[1024];
+        size_t size;
 
-        std::istreambuf_iterator<char> begin_source(source);
-        std::istreambuf_iterator<char> end_source;
-        std::ostreambuf_iterator<char> begin_dest(dest); 
-        copy(begin_source, end_source, begin_dest);
+        FILE* source = fopen(path.c_str(), "rb");
+        FILE* dest = fopen("/sd/firmware.bin", "wb");
 
-        source.close();
-        dest.close();
+        // clean and more secure
+        // feof(FILE* stream) returns non-zero if the end of file indicator for stream is set
+
+        while (size = fread(buf, 1, 1024, source)) {
+            fwrite(buf, 1, size, dest);
+        }
+
+        fclose(source);
+        fclose(dest);
+
         this->done_copy = true;
     }
 
