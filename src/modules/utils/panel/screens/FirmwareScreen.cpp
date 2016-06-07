@@ -117,8 +117,7 @@ void FirmwareScreen::clicked_line(uint16_t line)
         }
         // Copy file to internal SD Card
 
-        char buf[1024];
-        size_t size;
+        char buf;
 
         FILE* source = fopen(path.c_str(), "rb");
         FILE* dest = fopen("/sd/firmware.bin", "wb");
@@ -126,8 +125,8 @@ void FirmwareScreen::clicked_line(uint16_t line)
         // clean and more secure
         // feof(FILE* stream) returns non-zero if the end of file indicator for stream is set
 
-        while (size = fread(buf, 1, 1024, source)) {
-            fwrite(buf, 1, size, dest);
+        while (buf = fgetc(source) != EOF) {
+            fputc(buf, dest);
         }
 
         fclose(source);
