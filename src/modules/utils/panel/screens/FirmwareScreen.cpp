@@ -18,6 +18,7 @@
 // #include <fstream>
 // #include <algorithm>
 // #include <iterator>
+// #include <unistd.h>
 #include "libs/SerialMessage.h"
 #include "StreamOutput.h"
 #include "DirHandle.h"
@@ -117,7 +118,7 @@ void FirmwareScreen::clicked_line(uint16_t line)
         }
         // Copy file to internal SD Card
 
-        char buf;
+        int buf;
 
         FILE* source = fopen(path.c_str(), "rb");
         FILE* dest = fopen("/sd/firmware.bin", "wb");
@@ -131,6 +132,10 @@ void FirmwareScreen::clicked_line(uint16_t line)
 
         fclose(source);
         fclose(dest);
+
+        remove("/sd/FIRMWARE.CUR");
+
+        // system_reset(false);
 
         this->done_copy = true;
     }
