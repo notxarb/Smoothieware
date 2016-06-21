@@ -19,6 +19,7 @@
 // #include <algorithm>
 // #include <iterator>
 // #include <unistd.h>
+#include <stdio.h>
 #include "libs/SerialMessage.h"
 #include "StreamOutput.h"
 #include "DirHandle.h"
@@ -29,6 +30,8 @@ using std::string;
 FirmwareScreen::FirmwareScreen()
 {
     this->done_copy = false;
+    this->copying = false;
+    this->copied_bytes = 0;
 }
 
 // When entering this screen
@@ -79,16 +82,22 @@ void FirmwareScreen::enter_folder(const char *folder)
 // Called by the panel when refreshing the menu, display .. then all files in the current dir
 void FirmwareScreen::display_menu_line(uint16_t line)
 {
-    if ( line == 0 ) {
-        THEPANEL->lcd->printf("..");
-    } else {
-        bool isdir;
-        string fn= this->file_at(line - 1, isdir).substr(0, 18);
-        if(isdir) {
-            if(fn.size() >= 18) fn.back()= '/';
-            else fn.append("/");
+    if (this->copying) {
+        if ( line == 0) {
+            THEPANEL->lcd->printf("Copied %d Bytes", this->copied_bytes);
         }
-        THEPANEL->lcd->printf("%s", fn.c_str());
+    } else {
+        if ( line == 0 ) {
+            THEPANEL->lcd->printf("..");
+        } else {
+            bool isdir;
+            string fn= this->file_at(line - 1, isdir).substr(0, 18);
+            if(isdir) {
+                if(fn.size() >= 18) fn.back()= '/';
+                else fn.append("/");
+            }
+            THEPANEL->lcd->printf("%s", fn.c_str());
+        }
     }
 }
 
@@ -117,26 +126,38 @@ void FirmwareScreen::clicked_line(uint16_t line)
             return;
         }
         // Copy file to internal SD Card
+        char buf;
+        ssize_t nwritten;
+        ssize_t nread;
 
-        int buf;
+        // int buf;
 
         FILE* source = fopen(path.c_str(), "rb");
         FILE* dest = fopen("/sd/firmware.bin", "wb");
 
         // clean and more secure
         // feof(FILE* stream) returns non-zero if the end of file indicator for stream is set
+        
+        this->copied_bytes = 0;
+        this->copying = true;
 
-        while (buf = fgetc(source) != EOF) {
-            fputc(buf, dest);
+        while ((nread = fread(&buf, 1, 1, source)) > 0) {
+            nwritten = fwrite(&buf, 1, 1, dest);
+            if (nread != nwritten)
+                break;
+            this->copied_bytes += nwritten;
         }
+        // while (buf = fgetc(source) != EOF) {
+            // fputc(buf, dest);
+        // }
 
         fclose(source);
         fclose(dest);
 
-        remove("/sd/FIRMWARE.CUR");
+        // remove("/sd/FIRMWARE.CUR");
 
         // system_reset(false);
-
+        this->copying = false;
         this->done_copy = true;
     }
 

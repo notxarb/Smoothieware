@@ -28,6 +28,8 @@ class FirmwareScreen : public PanelScreen {
         std::string file_at(uint16_t line, bool& isdir);
         bool filter_file(const char *f);
         bool done_copy;
+        size_t copied_bytes;
+        bool copying;
 };
 
 #endif
