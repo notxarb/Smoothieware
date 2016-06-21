@@ -621,8 +621,8 @@ void SimpleShell::version_command( string parameters, StreamOutput *stream)
 // Reset the system
 void SimpleShell::reset_command( string parameters, StreamOutput *stream)
 {
-    stream->printf("Smoothie out. Peace. Rebooting in 5 seconds...\r\n");
-    reset_delay_secs = 5; // reboot in 5 seconds
+    stream->printf("Rebooting Altair\r\n");
+    reset_delay_secs = 1; // reboot in 1 second
 }
 
 // go into dfu boot mode

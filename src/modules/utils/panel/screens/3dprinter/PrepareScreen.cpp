@@ -39,7 +39,7 @@ void PrepareScreen::on_enter()
 {
     THEPANEL->enter_menu_mode();
     // if no heaters or extruder then don't show related menu items
-    THEPANEL->setup_menu((this->extruder_screen != nullptr) ? 9 : 5);
+    THEPANEL->setup_menu((this->extruder_screen != nullptr) ? 7 : 3);
     this->refresh_menu();
 }
 
@@ -58,14 +58,12 @@ void PrepareScreen::display_menu_line(uint16_t line)
     switch ( line ) {
         case 0: THEPANEL->lcd->printf("Back"           ); break;
         case 1: THEPANEL->lcd->printf("Home All Axes"  ); break;
-        case 2: THEPANEL->lcd->printf("Set Home"       ); break;
-        case 3: THEPANEL->lcd->printf("Set Z0"         ); break;
-        case 4: THEPANEL->lcd->printf("Motors off"     ); break;
+        case 2: THEPANEL->lcd->printf("Motors off"     ); break;
         // these won't be accessed if no heaters or extruders
-        case 5: THEPANEL->lcd->printf("Pre Heat"       ); break;
-        case 6: THEPANEL->lcd->printf("Cool Down"      ); break;
-        case 7: THEPANEL->lcd->printf("Extruder..."    ); break;
-        case 8: THEPANEL->lcd->printf("Set Temperature"); break;
+        case 3: THEPANEL->lcd->printf("Pre Heat"       ); break;
+        case 4: THEPANEL->lcd->printf("Cool Down"      ); break;
+        case 5: THEPANEL->lcd->printf("Extruder..."    ); break;
+        case 6: THEPANEL->lcd->printf("Set Temperature"); break;
     }
 }
 
@@ -73,14 +71,24 @@ void PrepareScreen::clicked_menu_entry(uint16_t line)
 {
     switch ( line ) {
         case 0: THEPANEL->enter_screen(this->parent); break;
-        case 1: send_command("G28"); break;
-        case 2: send_command("G92 X0 Y0 Z0"); break;
-        case 3: send_command("G92 Z0"); break;
-        case 4: send_command("M84"); break;
-        case 5: this->preheat(); break;
-        case 6: this->cooldown(); break;
-        case 7: THEPANEL->enter_screen(this->extruder_screen); break;
-        case 8: setup_temperature_screen(); break;
+        case 1:
+            send_command("G28");
+            THEPANEL->enter_screen(this->parent);
+            break;
+        case 2:
+            send_command("M84");
+            THEPANEL->enter_screen(this->parent);
+            break;
+        case 3:
+            this->preheat();
+            THEPANEL->enter_screen(this->parent);
+            break;
+        case 4:
+            this->cooldown();
+            THEPANEL->enter_screen(this->parent);
+            break;
+        case 5: THEPANEL->enter_screen(this->extruder_screen); break;
+        case 6: setup_temperature_screen(); break;
     }
 }
 

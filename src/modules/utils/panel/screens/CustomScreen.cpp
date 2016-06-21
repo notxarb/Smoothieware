@@ -80,5 +80,7 @@ void CustomScreen::clicked_menu_entry(uint16_t line)
         THEPANEL->enter_screen(this->parent);
     } else {
         send_command(std::get<1>(menu_items[line-1])); // will be done in main loop
+        THEPANEL->enter_screen(this->parent);
+        // Returns to previous screen to show that a command was selected.
     }
 }
