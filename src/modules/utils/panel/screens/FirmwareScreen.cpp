@@ -126,7 +126,7 @@ void FirmwareScreen::clicked_line(uint16_t line)
             return;
         }
         // Copy file to internal SD Card
-        char buf;
+        unsigned int buf;
         ssize_t nwritten;
         ssize_t nread;
 
@@ -141,8 +141,8 @@ void FirmwareScreen::clicked_line(uint16_t line)
         this->copied_bytes = 0;
         this->copying = true;
 
-        while ((nread = fread(&buf, 1, 1, source)) > 0) {
-            nwritten = fwrite(&buf, 1, 1, dest);
+        while ((nread = fread(&buf, sizeof(unsigned int), 1, source)) > 0) {
+            nwritten = fwrite(&buf, sizeof(unsigned int), 1, dest);
             if (nread != nwritten)
                 break;
             this->copied_bytes += nwritten;
@@ -168,8 +168,8 @@ void FirmwareScreen::clicked_line(uint16_t line)
 bool FirmwareScreen::filter_file(const char *f)
 {
     string fn= lc(f);
-    return (fn.at(0) != '.') &&
-             (fn.find(".bin") != string::npos);
+    return (fn.at(0) != '.'); // &&
+             // (fn.find(".bin") != string::npos);
 }
 
 // Find the "line"th file in the current folder
