@@ -127,13 +127,18 @@ void FirmwareScreen::clicked_line(uint16_t line)
         }
         // Copy file to internal SD Card
         unsigned int buf;
-        ssize_t nwritten;
-        ssize_t nread;
+        // ssize_t nwritten;
+        // ssize_t nread;
 
         // int buf;
 
-        FILE* source = fopen(path.c_str(), "rb");
-        FILE* dest = fopen("/sd/firmware.bin", "wb");
+        FILE* source = fopen(path.c_str(), "r");
+        FILE* dest = fopen("/sd/firmware.bin", "w");
+
+        fseek(source, 0L, SEEK_END);
+        int size = ftell(source);
+
+        fseek(source, 0L, SEEK_SET);
 
         // clean and more secure
         // feof(FILE* stream) returns non-zero if the end of file indicator for stream is set
@@ -141,12 +146,19 @@ void FirmwareScreen::clicked_line(uint16_t line)
         this->copied_bytes = 0;
         this->copying = true;
 
-        while ((nread = fread(&buf, sizeof(unsigned int), 1, source)) > 0) {
-            nwritten = fwrite(&buf, sizeof(unsigned int), 1, dest);
-            if (nread != nwritten)
-                break;
-            this->copied_bytes += nwritten;
+
+        int i;
+        for (i = 0; i < size; i++) {
+            fread(&buf, sizeof(unsigned int), 1, source);
+            fwrite(&buf, sizeof(unsigned int), 1, dest);
         }
+
+        // while ((nread = fread(&buf, sizeof(unsigned int), 1, source)) > 0) {
+        //     nwritten = fwrite(&buf, sizeof(unsigned int), 1, dest);
+        //     if (nread != nwritten)
+        //         break;
+        //     this->copied_bytes += nwritten;
+        // }
         // while (buf = fgetc(source) != EOF) {
             // fputc(buf, dest);
         // }
