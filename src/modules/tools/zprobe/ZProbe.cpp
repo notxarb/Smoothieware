@@ -32,6 +32,7 @@
 #include "ThreePointStrategy.h"
 //#include "ZGridStrategy.h"
 #include "DeltaGridStrategy.h"
+#include "../endstops/Endstops.h"
 
 #define enable_checksum          CHECKSUM("enable")
 #define probe_pin_checksum       CHECKSUM("probe_pin")
@@ -176,6 +177,59 @@ bool ZProbe::run_probe(float& mm, float feedrate, float max_dist, bool reverse)
         THEROBOT->actuators[X_AXIS]->get_current_position(),
         THEROBOT->actuators[Y_AXIS]->get_current_position(),
         THEROBOT->actuators[Z_AXIS]->get_current_position()
+    };
+
+    // move Z down
+    THEROBOT->disable_segmentation= true; // we must disable segmentation as this won't work with it enabled
+    bool dir= (!reverse_z != reverse); // xor
+    float delta[3]= {0,0,0};
+    delta[Z_AXIS]= dir ? -maxz : maxz;
+    THEROBOT->delta_move(delta, feedrate, 3);
+
+    // wait until finished
+    THECONVEYOR->wait_for_idle();
+    THEROBOT->disable_segmentation= false;
+
+    // now see how far we moved, get delta in z we moved
+    // NOTE this works for deltas as well as all three actuators move the same amount in Z
+    mm= start_pos[2] - THEROBOT->actuators[2]->get_current_position();
+
+    // set the last probe position to the actuator units moved during this home
+    THEROBOT->set_last_probe_position(
+        std::make_tuple(
+            start_pos[0] - THEROBOT->actuators[0]->get_current_position(),
+            start_pos[1] - THEROBOT->actuators[1]->get_current_position(),
+            mm,
+            probe_detected?1:0));
+
+    probing= false;
+
+    if(probe_detected) {
+        // if the probe stopped the move we need to correct the last_milestone as it did not reach where it thought
+        THEROBOT->reset_position_from_current_actuator_position();
+    }
+
+    return probe_detected;
+}
+
+// single probe in Z with custom feedrate
+// returns boolean value indicating if probe was triggered
+bool ZProbe::run_probe2(float& mm, float feedrate, float max_dist, bool reverse)
+{
+    float maxz= max_dist < 0 ? this->max_z*2 : max_dist;
+    // float *trim;
+
+    probing= true;
+    probe_detected= false;
+    debounce= 0;
+
+    // trim = THEKERNEL->endstops->get_trim();
+
+    // save current actuator position so we can report how far we moved
+    ActuatorCoordinates start_pos{
+        THEROBOT->actuators[X_AXIS]->get_current_position() + CHECKSUM("alpha_homing_retract_mm"),
+        THEROBOT->actuators[Y_AXIS]->get_current_position() + CHECKSUM("beta_homing_retract_mm"),
+        THEROBOT->actuators[Z_AXIS]->get_current_position() + CHECKSUM("gamma_homing_retract_mm")
     };
 
     // move Z down
@@ -365,11 +419,11 @@ void ZProbe::on_gcode_received(void *argument)
             bool reverse= (gcode->has_letter('R') && gcode->get_value('R') != 0); // specify to probe in reverse direction
             float rate= gcode->has_letter('F') ? gcode->get_value('F') / 60 : this->slow_feedrate;
             float mm;
-            probe_result = run_probe(mm, rate, -1, reverse);
+            probe_result = run_probe2(mm, rate, -1, reverse);
 
             if(probe_result) {
                 // the result is in actuator coordinates and raw steps
-                gcode->stream->printf("M665 Z%1.4f\n")
+                // gcode->stream->printf("M665 Z%1.4f\n");
                 gcode->stream->printf("Z:%1.4f\n", mm);
 
                 // set the last probe position to the current actuator units
