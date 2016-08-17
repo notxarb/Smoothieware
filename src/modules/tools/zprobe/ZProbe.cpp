@@ -318,7 +318,6 @@ void ZProbe::on_gcode_received(void *argument)
 
             // restore compensationTransform
             THEROBOT->compensationTransform= savect;
-
         } else {
             if(!gcode->has_letter('P')) {
                 // find the first strategy to handle the gcode
@@ -345,6 +344,67 @@ void ZProbe::on_gcode_received(void *argument)
             }
         }
 
+    } else if( gcode->g == 130 ) {
+        // make sure the probe is defined and not already triggered before moving motors
+        if(!this->pin.connected()) {
+            gcode->stream->printf("ZProbe not connected.\n");
+            return;
+        }
+        if(this->pin.get()) {
+            gcode->stream->printf("ZProbe triggered before move, aborting command.\n");
+            return;
+        }
+            // first wait for an empty queue i.e. no moves left
+            THEKERNEL->conveyor->wait_for_idle();
+
+            // turn off any compensation transform
+            auto savect= THEROBOT->compensationTransform;
+            THEROBOT->compensationTransform= nullptr;
+
+            bool probe_result;
+            bool reverse= (gcode->has_letter('R') && gcode->get_value('R') != 0); // specify to probe in reverse direction
+            float rate= gcode->has_letter('F') ? gcode->get_value('F') / 60 : this->slow_feedrate;
+            float mm;
+            probe_result = run_probe(mm, rate, -1, reverse);
+
+            if(probe_result) {
+                // the result is in actuator coordinates and raw steps
+                gcode->stream->printf("M665 Z%1.4f\n")
+                gcode->stream->printf("Z:%1.4f\n", mm);
+
+                // set the last probe position to the current actuator units
+                THEROBOT->set_last_probe_position(std::make_tuple(
+                    THEROBOT->actuators[X_AXIS]->get_current_position(),
+                    THEROBOT->actuators[Y_AXIS]->get_current_position(),
+                    THEROBOT->actuators[Z_AXIS]->get_current_position(),
+                    1));
+
+                // move back to where it started, unless a Z is specified (and not a rotary delta)
+                if(gcode->has_letter('Z') && !is_rdelta) {
+                    // set Z to the specified value, and leave probe where it is
+                    THEROBOT->reset_axis_position(gcode->get_value('Z'), Z_AXIS);
+
+                } else {
+                    // return to pre probe position
+                    return_probe(mm, reverse);
+                }
+
+            } else {
+                gcode->stream->printf("ZProbe not triggered\n");
+                THEROBOT->set_last_probe_position(std::make_tuple(
+                    THEROBOT->actuators[X_AXIS]->get_current_position(),
+                    THEROBOT->actuators[Y_AXIS]->get_current_position(),
+                    THEROBOT->actuators[Z_AXIS]->get_current_position(),
+                    0));
+            }
+
+            // restore compensationTransform
+            THEROBOT->compensationTransform= savect;
+
+            char cmd[64];
+            snprintf(cmd, sizeof(cmd), "M665 Z%1.4f\n", mm);
+            Gcode gc(cmd, &(StreamOutput::NullStream));
+            THEKERNEL->call_event(ON_GCODE_RECEIVED, &gc);
     } else if(gcode->has_g && gcode->g == 38 ) { // G38.2 Straight Probe with error, G38.3 straight probe without error
         // linuxcnc/grbl style probe http://www.linuxcnc.org/docs/2.5/html/gcode/gcode.html#sec:G38-probe
         if(gcode->subcode != 2 && gcode->subcode != 3) {
