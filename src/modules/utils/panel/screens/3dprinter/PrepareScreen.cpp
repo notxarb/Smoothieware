@@ -19,12 +19,6 @@
 #include "TemperatureControlPublicAccess.h"
 #include "ModifyValuesScreen.h"
 #include "TemperatureControlPool.h"
-#include "JogScreen.h"
-#include "ProbeScreen.h"
-#include "Robot.h"
-#include "StepperMotor.h"
-#include "Planner.h"
-#include "EndstopsPublicAccess.h"
 
 #include <string>
 using namespace std;
@@ -39,69 +33,13 @@ PrepareScreen::PrepareScreen()
     }else{
         this->extruder_screen= nullptr;
     }
-    this->jog_screen = (new JogScreen())->set_parent(this);
-}
-
-// setup and enter the configure screen
-void PrepareScreen::setupConfigureScreen()
-{
-    auto mvs= new ModifyValuesScreen(true); // delete itself on exit
-    mvs->set_parent(this);
-
-    // acceleration
-    mvs->addMenuItem("Acceleration", // menu name
-        []() -> float { return THEKERNEL->planner->get_acceleration(); }, // getter
-        [this](float acc) { send_gcode("M204", 'S', acc); }, // setter
-        10.0F, // increment
-        1.0F, // Min
-        10000.0F // Max
-        );
-
-    // steps/mm
-    mvs->addMenuItem("X steps/mm",
-        []() -> float { return THEKERNEL->robot->actuators[0]->get_steps_per_mm(); },
-        [](float v) { THEKERNEL->robot->actuators[0]->change_steps_per_mm(v); },
-        0.1F,
-        1.0F
-        );
-
-    mvs->addMenuItem("Y steps/mm",
-        []() -> float { return THEKERNEL->robot->actuators[1]->get_steps_per_mm(); },
-        [](float v) { THEKERNEL->robot->actuators[1]->change_steps_per_mm(v); },
-        0.1F,
-        1.0F
-        );
-
-    mvs->addMenuItem("Z steps/mm",
-        []() -> float { return THEKERNEL->robot->actuators[2]->get_steps_per_mm(); },
-        [](float v) { THEKERNEL->robot->actuators[2]->change_steps_per_mm(v); },
-        0.1F,
-        1.0F
-        );
-
-    mvs->addMenuItem("Z Home Ofs",
-        []() -> float { void *rd; PublicData::get_value( endstops_checksum, home_offset_checksum, &rd ); return rd==nullptr ? 0.0F : ((float*)rd)[2]; },
-        [this](float v) { send_gcode("M206", 'Z', v); },
-        0.01F
-        );
-
-    mvs->addMenuItem("Contrast",
-        []() -> float { return THEPANEL->lcd->getContrast(); },
-        [this](float v) { THEPANEL->lcd->setContrast(v); },
-        1,
-        0,
-        255,
-        true // instant update
-        );
-
-    THEPANEL->enter_screen(mvs);
 }
 
 void PrepareScreen::on_enter()
 {
     THEPANEL->enter_menu_mode();
     // if no heaters or extruder then don't show related menu items
-    THEPANEL->setup_menu((this->extruder_screen != nullptr) ? 10 : 6);
+    THEPANEL->setup_menu((this->extruder_screen != nullptr) ? 9 : 5);
     this->refresh_menu();
 }
 
@@ -120,15 +58,14 @@ void PrepareScreen::display_menu_line(uint16_t line)
     switch ( line ) {
         case 0: THEPANEL->lcd->printf("Back"           ); break;
         case 1: THEPANEL->lcd->printf("Home All Axes"  ); break;
-        case 2: THEPANEL->lcd->printf("Motors off"     ); break;
-        case 3: THEPANEL->lcd->printf("Jog"            ); break;
-        case 4: THEPANEL->lcd->printf("Configure"      ); break;
-        case 5: THEPANEL->lcd->printf("Probe"          ); break;
+        case 2: THEPANEL->lcd->printf("Set Home"       ); break;
+        case 3: THEPANEL->lcd->printf("Set Z0"         ); break;
+        case 4: THEPANEL->lcd->printf("Motors off"     ); break;
         // these won't be accessed if no heaters or extruders
-        case 6: THEPANEL->lcd->printf("Pre Heat"       ); break;
-        case 7: THEPANEL->lcd->printf("Cool Down"      ); break;
-        case 8: THEPANEL->lcd->printf("Extruder..."    ); break;
-        case 9: THEPANEL->lcd->printf("Set Temperature"); break;
+        case 5: THEPANEL->lcd->printf("Pre Heat"       ); break;
+        case 6: THEPANEL->lcd->printf("Cool Down"      ); break;
+        case 7: THEPANEL->lcd->printf("Extruder..."    ); break;
+        case 8: THEPANEL->lcd->printf("Set Temperature"); break;
     }
 }
 
@@ -136,30 +73,14 @@ void PrepareScreen::clicked_menu_entry(uint16_t line)
 {
     switch ( line ) {
         case 0: THEPANEL->enter_screen(this->parent); break;
-        case 1:
-            send_command("G28");
-            THEPANEL->enter_screen(this->parent);
-            break;
-        case 2:
-            send_command("M84");
-            THEPANEL->enter_screen(this->parent);
-            break;
-        case 3:
-            THEPANEL->enter_screen(this->jog_screen     ); break;
-        case 4:
-            setupConfigureScreen(); break;
-        case 5:
-            THEPANEL->enter_screen((new ProbeScreen())->set_parent(this)); break;
-        case 6:
-            this->preheat();
-            THEPANEL->enter_screen(this->parent);
-            break;
-        case 7:
-            this->cooldown();
-            THEPANEL->enter_screen(this->parent);
-            break;
-        case 8: THEPANEL->enter_screen(this->extruder_screen); break;
-        case 9: setup_temperature_screen(); break;
+        case 1: send_command("G28"); break;
+        case 2: send_command("G92 X0 Y0 Z0"); break;
+        case 3: send_command("G92 Z0"); break;
+        case 4: send_command("M84"); break;
+        case 5: this->preheat(); break;
+        case 6: this->cooldown(); break;
+        case 7: THEPANEL->enter_screen(this->extruder_screen); break;
+        case 8: setup_temperature_screen(); break;
     }
 }
 

@@ -111,10 +111,14 @@ endif
 
 # CNC build
 ifeq "$(CNC)" "1"
-	CPPSRCS21 = $(filter-out $(SRC)/modules/utils/panel/screens/3dprinter/%,$(CPPSRCS2))
+	CPPSRCS21 = $(filter-out $(SRC)/modules/utils/panel/screens/3dprinter/%,$(filter-out $(SRC)/modules/utils/panel/screens/altair/%,$(CPPSRCS2)))
 	DEFINES += -DCNC
 else
-	CPPSRCS21 = $(filter-out $(SRC)/modules/utils/panel/screens/cnc/%,$(CPPSRCS2))
+	ifeq "$(ALTAIR)" "1"
+		CPPSRCS21 = $(filter-out $(SRC)/modules/utils/panel/screens/cnc/%,$(filter-out $(SRC)/modules/utils/panel/screens/3dprinter/%,$(CPPSRCS2)))
+	else
+		CPPSRCS21 = $(filter-out $(SRC)/modules/utils/panel/screens/cnc/%,$(filter-out $(SRC)/modules/utils/panel/screens/altair/%,$(CPPSRCS2)))
+	endif
 endif
 
 # Totally exclude any modules listed in EXCLUDE_MODULES

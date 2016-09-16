@@ -5,28 +5,22 @@
       You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PREPARESCREEN_H
-#define PREPARESCREEN_H
+#ifndef BASICSCREEN_H
+#define BASICSCREEN_H
 
 #include "PanelScreen.h"
 
-class PrepareScreen : public PanelScreen
-{
-public:
-    PrepareScreen();
+class BasicScreen : public PanelScreen {
+    public:
+        BasicScreen();
+        void on_refresh();
+        void on_enter();
+        void display_menu_line(uint16_t line);
+        void clicked_menu_entry(uint16_t line);
+        friend class Panel;
 
-    void on_refresh();
-    void on_enter();
-    void display_menu_line(uint16_t line);
-    void clicked_menu_entry(uint16_t line);
-    int idle_timeout_secs() { return 60; }
+    private:
 
-private:
-    void preheat();
-    void cooldown();
-    void setup_temperature_screen();
-
-    PanelScreen *extruder_screen;
 };
 
 #endif
