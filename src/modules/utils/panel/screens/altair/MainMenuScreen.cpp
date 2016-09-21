@@ -44,7 +44,7 @@ MainMenuScreen::MainMenuScreen()
 void MainMenuScreen::on_enter()
 {
     THEPANEL->enter_menu_mode();
-    THEPANEL->setup_menu(THEPANEL->is_playing()?5:4);
+    THEPANEL->setup_menu(5); //THEPANEL->is_playing()?5:4);
     this->refresh_menu();
 }
 
