@@ -80,8 +80,8 @@ void MainMenuScreen::display_menu_line(uint16_t line)
                 }
             }
             break; // pause or resume
-        case 2: THEPANEL->lcd->printf("Basic"); break;
-        case 3: THEPANEL->lcd->printf("Advanced"); break;
+        case 2: THEPANEL->lcd->printf("Basic Operation"); break;
+        case 3: THEPANEL->lcd->printf("Settings"); break;
         case 4: THEPANEL->lcd->printf("Abort"); break;
     }
 }
