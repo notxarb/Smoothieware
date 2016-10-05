@@ -21,13 +21,12 @@ class MainMenuScreen : public PanelScreen {
 
     private:
 
+        PanelScreen* watch_screen;
+        PanelScreen* file_screen;
         PanelScreen* basic_screen;
         PanelScreen* advanced_screen;
-        PanelScreen* file_screen;
-        PanelScreen* watch_screen;
 
         void abort_playing();
-
 };
 
 #endif

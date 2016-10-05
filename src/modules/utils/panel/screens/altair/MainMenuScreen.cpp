@@ -13,7 +13,7 @@
 #include "WatchScreen.h"
 #include "FileScreen.h"
 #include "AdvancedScreen.h"
-#include "BasicScreen.h"
+#include "CustomScreen.h"
 #include "libs/nuts_bolts.h"
 #include "libs/utils.h"
 #include "modules/utils/player/PlayerPublicAccess.h"
@@ -34,7 +34,7 @@ using namespace std;
 MainMenuScreen::MainMenuScreen()
 {
     // Children screens
-    this->basic_screen    = (new BasicScreen()    )->set_parent(this);
+    // this->basic_screen    = (new BasicScreen()    )->set_parent(this);
     this->advanced_screen = (new AdvancedScreen() )->set_parent(this);
     this->file_screen     = (new FileScreen()     )->set_parent(this);
     this->watch_screen    = (new WatchScreen()    )->set_parent(this);
@@ -112,7 +112,7 @@ void MainMenuScreen::clicked_menu_entry(uint16_t line)
                 }
             }
             break;
-        case 2: THEPANEL->enter_screen(this->basic_screen); break;
+        case 2: THEPANEL->enter_screen(THEPANEL->custom_screen); break;
         case 3: THEPANEL->enter_screen(this->advanced_screen); break;
         case 4: abort_playing(); break;
     }

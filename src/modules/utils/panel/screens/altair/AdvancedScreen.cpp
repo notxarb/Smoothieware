@@ -10,12 +10,6 @@
 #include "PanelScreen.h"
 #include "LcdBase.h"
 #include "AdvancedScreen.h"
-#include "WatchScreen.h"
-#include "FileScreen.h"
-#include "JogScreen.h"
-#include "ControlScreen.h"
-#include "PrepareScreen.h"
-#include "ProbeScreen.h"
 #include "libs/nuts_bolts.h"
 #include "libs/utils.h"
 #include "modules/utils/player/PlayerPublicAccess.h"
@@ -56,13 +50,13 @@ void AdvancedScreen::on_refresh()
 void AdvancedScreen::display_menu_line(uint16_t line)
 {
     switch(line) {
-      case 1: THEPANEL->lcd->printf("Back"); break;
+      case 0: THEPANEL->lcd->printf("Back"); break;
     }
 }
 
 void AdvancedScreen::clicked_menu_entry(uint16_t line)
 {
     switch(line) {
-      case 1: THEPANEL->enter_screen(this->parent); break;
+      case 0: THEPANEL->enter_screen(this->parent); break;
     }
 }
