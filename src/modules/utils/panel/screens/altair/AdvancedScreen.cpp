@@ -80,15 +80,29 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
 {
     switch(line) {
       case  0: THEPANEL->enter_screen(this->parent); break;
-      case  1: THEPANEL->lcd->printf("Set Bed Height"); break;
-      case  2: THEPANEL->lcd->printf("Motors Off"); break;
-      case  3: THEPANEL->lcd->printf("Preheat"); break;
-      case  4: THEPANEL->lcd->printf("Cool Down"); break;
+	  case  1: send_command("M306Z0");
+		       send_command("M500");
+		       break;
+	  case  2: send_command("M84"); break;
+	  case  3: //this->preheat(); break;
+	  case  4: //this->cooldown(); break;
       case  5: THEPANEL->enter_screen(this->extruder_screen); break;
       case  6: THEPANEL->enter_screen(this->temperature_screen); break;
-      case  7: THEPANEL->lcd->printf("Hot End PID"); break;
-      case  8: THEPANEL->lcd->printf("Bed PID"); break;
-      case  9: THEPANEL->lcd->printf("Go To Z5"); break;
+	  case  7: send_command("M117Tuning HotEnd");
+		       send_command("M303 E0 S220");
+		       send_command("M117PID Tuning Complete");
+			   send_command("G4 S5;");
+			   send_command("M117");
+		  break;
+	  case  8: send_command("M117Tuning Heated Bed");
+		       send_command("M303 E1 S100");
+		       send_command("M117PID Tuning Complete");
+		       send_command("G4 S5;");
+		       send_command("M117");
+		       break;
+	  case  9: send_command("G28");
+		       send_command("G0Z5F3000"); 
+			   break;
       case 10: THEPANEL->enter_screen(this->jog_screen); break;
       case 11: THEPANEL->enter_screen(this->configure_screen); break;
       case 12: THEPANEL->enter_screen(this->probe_screen); break;
