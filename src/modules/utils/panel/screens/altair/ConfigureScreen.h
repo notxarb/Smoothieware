@@ -5,14 +5,14 @@
       You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ADVANCEDSCREEN_H
-#define ADVANCEDSCREEN_H
+#ifndef CONFIGURESCREEN_H
+#define CONFIGURESCREEN_H
 
 #include "PanelScreen.h"
 
-class AdvancedScreen : public PanelScreen {
+class ConfigureScreen : public PanelScreen {
     public:
-        AdvancedScreen();
+        ConfigureScreen();
         void on_refresh();
         void on_enter();
         void display_menu_line(uint16_t line);
@@ -20,12 +20,6 @@ class AdvancedScreen : public PanelScreen {
         friend class Panel;
 
     private:
-
-        PanelScreen* extruder_screen;
-        PanelScreen* temperature_screen;
-        PanelScreen* jog_screen;
-        PanelScreen* configure_screen;
-        PanelScreen* probe_screen;
 
 };
 

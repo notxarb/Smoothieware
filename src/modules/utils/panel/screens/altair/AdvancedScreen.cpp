@@ -10,6 +10,11 @@
 #include "PanelScreen.h"
 #include "LcdBase.h"
 #include "AdvancedScreen.h"
+#include "ExtruderScreen.h"
+#include "JogScreen.h"
+#include "TemperatureScreen.h"
+#include "ConfigureScreen.h"
+#include "ProbeScreen.h"
 #include "libs/nuts_bolts.h"
 #include "libs/utils.h"
 #include "modules/utils/player/PlayerPublicAccess.h"
@@ -28,12 +33,17 @@ using namespace std;
 AdvancedScreen::AdvancedScreen()
 {
     // Children screens
+  this->extruder_screen    = (new ExtruderScreen()   )->set_parent(this);
+  this->temperature_screen = (new TemperatureScreen())->set_parent(this);
+  this->jog_screen         = (new JogScreen()        )->set_parent(this);
+  this->configure_screen   = (new ConfigureScreen()  )->set_parent(this);
+  this->probe_screen       = (new ProbeScreen()      )->set_parent(this);
 }
 
 void AdvancedScreen::on_enter()
 {
     THEPANEL->enter_menu_mode();
-    THEPANEL->setup_menu(1);
+    THEPANEL->setup_menu(13);
     this->refresh_menu();
 }
 
@@ -50,13 +60,37 @@ void AdvancedScreen::on_refresh()
 void AdvancedScreen::display_menu_line(uint16_t line)
 {
     switch(line) {
-      case 0: THEPANEL->lcd->printf("Back"); break;
+      case  0: THEPANEL->lcd->printf("Back"); break;
+      case  1: THEPANEL->lcd->printf("Set Bed Height"); break;
+      case  2: THEPANEL->lcd->printf("Motors Off"); break;
+      case  3: THEPANEL->lcd->printf("Preheat"); break;
+      case  4: THEPANEL->lcd->printf("Cool Down"); break;
+      case  5: THEPANEL->lcd->printf("Extruder"); break;
+      case  6: THEPANEL->lcd->printf("Set Temperature"); break;
+      case  7: THEPANEL->lcd->printf("Hot End PID"); break;
+      case  8: THEPANEL->lcd->printf("Bed PID"); break;
+      case  9: THEPANEL->lcd->printf("Go To Z5"); break;
+      case 10: THEPANEL->lcd->printf("Jog"); break;
+      case 11: THEPANEL->lcd->printf("Configure"); break;
+      case 12: THEPANEL->lcd->printf("Probe"); break;
     }
 }
 
 void AdvancedScreen::clicked_menu_entry(uint16_t line)
 {
     switch(line) {
-      case 0: THEPANEL->enter_screen(this->parent); break;
+      case  0: THEPANEL->enter_screen(this->parent); break;
+      case  1: THEPANEL->lcd->printf("Set Bed Height"); break;
+      case  2: THEPANEL->lcd->printf("Motors Off"); break;
+      case  3: THEPANEL->lcd->printf("Preheat"); break;
+      case  4: THEPANEL->lcd->printf("Cool Down"); break;
+      case  5: THEPANEL->enter_screen(this->extruder_screen); break;
+      case  6: THEPANEL->enter_screen(this->temperature_screen); break;
+      case  7: THEPANEL->lcd->printf("Hot End PID"); break;
+      case  8: THEPANEL->lcd->printf("Bed PID"); break;
+      case  9: THEPANEL->lcd->printf("Go To Z5"); break;
+      case 10: THEPANEL->enter_screen(this->jog_screen); break;
+      case 11: THEPANEL->enter_screen(this->configure_screen); break;
+      case 12: THEPANEL->enter_screen(this->probe_screen); break;
     }
 }

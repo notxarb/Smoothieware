@@ -44,7 +44,7 @@ MainMenuScreen::MainMenuScreen()
 void MainMenuScreen::on_enter()
 {
     THEPANEL->enter_menu_mode();
-    THEPANEL->setup_menu(5); //THEPANEL->is_playing()?5:4);
+    THEPANEL->setup_menu((THEPANEL->is_playing())?5:4);
     this->refresh_menu();
 }
 
@@ -67,7 +67,7 @@ void MainMenuScreen::display_menu_line(uint16_t line)
                 THEPANEL->lcd->printf("Clear HALT");
             }
             else {
-                if ( ! THEPANEL->is_playing() ) {
+                if ( ! THEPANEL->is_playing() && ! THEPANEL->is_suspended() ) {
                     THEPANEL->lcd->printf("Print");
                 }
                 else {
@@ -96,7 +96,7 @@ void MainMenuScreen::clicked_menu_entry(uint16_t line)
                 THEPANEL->enter_screen(this->watch_screen);
             }
             else {
-                if ( ! THEPANEL->is_playing() ) {
+                if ( ! THEPANEL->is_playing() && ! THEPANEL->is_suspended() ) {
                     THEPANEL->enter_screen(this->file_screen);
                 }
                 else {
