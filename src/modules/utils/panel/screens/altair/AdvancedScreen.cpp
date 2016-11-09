@@ -26,6 +26,8 @@
 #include "Planner.h"
 #include "StepperMotor.h"
 #include "EndstopsPublicAccess.h"
+#include "TemperatureControlPublicAccess.h"
+#include "TemperatureControlPool.h"
 
 #include <string>
 using namespace std;
@@ -106,5 +108,25 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
       case 10: THEPANEL->enter_screen(this->jog_screen); break;
       case 11: THEPANEL->enter_screen(this->configure_screen); break;
       case 12: THEPANEL->enter_screen(this->probe_screen); break;
+    }
+}
+
+void AdvancedScreen::preheat()
+{
+    float t = THEPANEL->get_default_hotend_temp();
+    PublicData::set_value( temperature_control_checksum, hotend_checksum, &t );
+    t = THEPANEL->get_default_bed_temp();
+    PublicData::set_value( temperature_control_checksum, bed_checksum, &t );
+}
+
+void AdvancedScreen::cooldown()
+{
+    float t = 0;
+    std::vector<struct pad_temperature> controllers;
+    bool ok = PublicData::get_value(temperature_control_checksum, poll_controls_checksum, &controllers);
+    if (ok) {
+        for (auto &c : controllers) {
+            PublicData::set_value( temperature_control_checksum, c.id, &t );
+        }
     }
 }

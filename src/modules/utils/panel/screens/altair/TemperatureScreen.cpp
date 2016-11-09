@@ -14,6 +14,7 @@
 #include "libs/utils.h"
 #include "modules/utils/player/PlayerPublicAccess.h"
 #include "modules/utils/player/Player.h"
+#include "PublicDataRequest.h"
 #include "PublicData.h"
 #include "checksumm.h"
 #include "ModifyValuesScreen.h"
@@ -21,42 +22,74 @@
 #include "Planner.h"
 #include "StepperMotor.h"
 #include "EndstopsPublicAccess.h"
+#include "TemperatureControlPublicAccess.h"
+#include "TemperatureControlPool.h"
 
 #include <string>
 using namespace std;
 
-TemperatureScreen::TemperatureScreen()
+static float getTargetTemperature(uint16_t heater_cs)
 {
-    // Children screens
+    struct pad_temperature temp;
+    bool ok = PublicData::get_value( temperature_control_checksum, current_temperature_checksum, heater_cs, &temp );
+
+    if (ok) {
+        return temp.target_temperature;
+    }
+
+    return 0.0F;
 }
 
-void TemperatureScreen::on_enter()
+TemperatureScreen::TemperatureScreen()
 {
-    THEPANEL->enter_menu_mode();
-    THEPANEL->setup_menu(1);
-    this->refresh_menu();
+    ModifyValuesScreen(false);
+
+    int cnt= 0;
+    // returns enabled temperature controllers
+    std::vector<struct pad_temperature> controllers;
+    bool ok = PublicData::get_value(temperature_control_checksum, poll_controls_checksum, &controllers);
+    if (ok) {
+        for (auto &c : controllers) {
+            // rename if two of the known types
+            const char *name;
+            if(c.designator == "T") name= "Hotend";
+            else if(c.designator == "B") name= "Bed";
+            else name= c.designator.c_str();
+            uint16_t i= c.id;
+
+            this->addMenuItem(name, // menu name
+                [i]() -> float { return getTargetTemperature(i); }, // getter
+                [i](float t) { PublicData::set_value( temperature_control_checksum, i, &t ); }, // setter
+                1.0F, // increment
+                0.0F, // Min
+                500.0F // Max
+            );
+            cnt++;
+        }
+    }
+}
+
+TemperatureScreen::~TemperatureScreen()
+{
+    this->~ModifyValuesScreen();
 }
 
 void TemperatureScreen::on_refresh()
 {
-    if ( THEPANEL->menu_change() ) {
-        this->refresh_menu();
-    }
-    if ( THEPANEL->click() ) {
-        this->clicked_menu_entry(THEPANEL->get_menu_current_line());
-    }
+    ((ModifyValuesScreen *)this)->on_refresh();
 }
 
-void TemperatureScreen::display_menu_line(uint16_t line)
+void TemperatureScreen::on_enter()
 {
-    switch(line) {
-      case 0: THEPANEL->lcd->printf("Back"); break;
-    }
+    ((ModifyValuesScreen *)this)->on_enter();
 }
 
-void TemperatureScreen::clicked_menu_entry(uint16_t line)
+void TemperatureScreen::display_menu_line(unsigned short line)
 {
-    switch(line) {
-      case 0: THEPANEL->enter_screen(this->parent); break;
-    }
+    ((ModifyValuesScreen *)this)->display_menu_line(line);
+}
+
+void TemperatureScreen::clicked_menu_entry(unsigned short line)
+{
+    ((ModifyValuesScreen *)this)->clicked_menu_entry(line);
 }

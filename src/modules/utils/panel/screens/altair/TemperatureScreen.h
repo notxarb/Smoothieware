@@ -9,15 +9,19 @@
 #define TEMPERATURESCREEN_H
 
 #include "PanelScreen.h"
+#include "ModifyValuesScreen.h"
 
-class TemperatureScreen : public PanelScreen {
+class TemperatureScreen : public ModifyValuesScreen {
     public:
         TemperatureScreen();
+        virtual ~TemperatureScreen();
+
         void on_refresh();
         void on_enter();
         void display_menu_line(uint16_t line);
         void clicked_menu_entry(uint16_t line);
         friend class Panel;
+        friend class ModifyValuesScreen;
 
     private:
 
