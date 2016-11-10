@@ -12,7 +12,8 @@
 #include "AdvancedScreen.h"
 #include "ExtruderScreen.h"
 #include "JogScreen.h"
-#include "TemperatureScreen.h"
+// #include "TemperatureScreen.h"
+#include "ModifyValuesScreen.h"
 #include "ConfigureScreen.h"
 #include "ProbeScreen.h"
 #include "libs/nuts_bolts.h"
@@ -32,14 +33,54 @@
 #include <string>
 using namespace std;
 
+static float getTargetTemperature(uint16_t heater_cs)
+{
+    struct pad_temperature temp;
+    bool ok = PublicData::get_value( temperature_control_checksum, current_temperature_checksum, heater_cs, &temp );
+
+    if (ok) {
+        return temp.target_temperature;
+    }
+
+    return 0.0F;
+}
+
 AdvancedScreen::AdvancedScreen()
 {
     // Children screens
   this->extruder_screen    = (new ExtruderScreen()   )->set_parent(this);
-  this->temperature_screen = (new TemperatureScreen())->set_parent(this);
+  // this->temperature_screen = (new TemperatureScreen())->set_parent(this);
   this->jog_screen         = (new JogScreen()        )->set_parent(this);
   this->configure_screen   = (new ConfigureScreen()  )->set_parent(this);
   this->probe_screen       = (new ProbeScreen()      )->set_parent(this);
+
+  // Setup the temperature screen
+  this->temperature_screen = new ModifyValuesScreen(false);
+  this->temperature_screen->set_parent(this);
+
+  int cnt= 0;
+  // returns enabled temperature controllers
+  std::vector<struct pad_temperature> controllers;
+  bool ok = PublicData::get_value(temperature_control_checksum, poll_controls_checksum, &controllers);
+  if (ok) {
+      for (auto &c : controllers) {
+          // rename if two of the known types
+          const char *name;
+          if(c.designator == "T") name= "Hotend";
+          else if(c.designator == "B") name= "Bed";
+          else name= c.designator.c_str();
+          uint16_t i= c.id;
+
+          ((ModifyValuesScreen *)this->temperature_screen)->addMenuItem(name, // menu name
+              [i]() -> float { return getTargetTemperature(i); }, // getter
+              [i](float t) { PublicData::set_value( temperature_control_checksum, i, &t ); }, // setter
+              1.0F, // increment
+              0.0F, // Min
+              500.0F // Max
+          );
+          cnt++;
+      }
+  }
 }
 
 void AdvancedScreen::on_enter()
