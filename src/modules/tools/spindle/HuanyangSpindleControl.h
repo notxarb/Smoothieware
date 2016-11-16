@@ -5,22 +5,25 @@
       You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TEMPERATURESCREEN_H
-#define TEMPERATURESCREEN_H
+#ifndef HUANYANG_SPINDLE_CONTROL_MODULE_H
+#define HUANYANG_SPINDLE_CONTROL_MODULE_H
 
-#include "PanelScreen.h"
+#include "ModbusSpindleControl.h"
+#include <stdint.h>
 
-class TemperatureScreen : public PanelScreen {
+// This module implements Modbus control for spindle control over Modbus.
+class HuanyangSpindleControl: public ModbusSpindleControl {
     public:
-        TemperatureScreen();
-        void on_refresh();
-        void on_enter();
-        void display_menu_line(uint16_t line);
-        void clicked_menu_entry(uint16_t line);
-        friend class Panel;
-
+        HuanyangSpindleControl() {};
+        virtual ~HuanyangSpindleControl() {};
+        
     private:
-
+        
+        void turn_on(void);
+        void turn_off(void);
+        void set_speed(int);
+        void report_speed(void);
 };
 
 #endif
+

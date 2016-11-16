@@ -5,31 +5,28 @@
       You should have received a copy of the GNU General Public License along with Smoothie. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ADVANCEDSCREEN_H
-#define ADVANCEDSCREEN_H
+#ifndef MODBUS_SPINDLE_CONTROL_MODULE_H
+#define MODBUS_SPINDLE_CONTROL_MODULE_H
 
-#include "PanelScreen.h"
+#include "SpindleControl.h"
 
-class AdvancedScreen : public PanelScreen {
+class Modbus;
+
+// This module implements Modbus control for spindle control over Modbus.
+class ModbusSpindleControl: public SpindleControl {
     public:
-        AdvancedScreen();
-        void on_refresh();
-        void on_enter();
-        void display_menu_line(uint16_t line);
-        void clicked_menu_entry(uint16_t line);
-        friend class Panel;
-
-    private:
-
-        void preheat();
-        void cooldown();
-
-        PanelScreen* extruder_screen;
-        PanelScreen* temperature_screen;
-        PanelScreen* jog_screen;
-        PanelScreen* configure_screen;
-        PanelScreen* probe_screen;
+        ModbusSpindleControl() {};
+        virtual ~ModbusSpindleControl() {};
+        void on_module_loaded();
+        
+        Modbus* modbus;
+        
+        virtual void turn_on(void);
+        virtual void turn_off(void);
+        virtual void set_speed(int);
+        virtual void report_speed(void);
 
 };
 
 #endif
+
