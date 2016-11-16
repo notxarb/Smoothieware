@@ -14,7 +14,7 @@
 #include "JogScreen.h"
 // #include "TemperatureScreen.h"
 #include "ModifyValuesScreen.h"
-#include "ConfigureScreen.h"
+// #include "ConfigureScreen.h"
 #include "ProbeScreen.h"
 #include "libs/nuts_bolts.h"
 #include "libs/utils.h"
@@ -51,7 +51,7 @@ AdvancedScreen::AdvancedScreen()
   this->extruder_screen    = (new ExtruderScreen()   )->set_parent(this);
   // this->temperature_screen = (new TemperatureScreen())->set_parent(this);
   this->jog_screen         = (new JogScreen()        )->set_parent(this);
-  this->configure_screen   = (new ConfigureScreen()  )->set_parent(this);
+  // this->configure_screen   = (new ConfigureScreen()  )->set_parent(this);
   this->probe_screen       = (new ProbeScreen()      )->set_parent(this);
 
   // Setup the temperature screen
@@ -81,6 +81,25 @@ AdvancedScreen::AdvancedScreen()
           cnt++;
       }
   }
+
+  this->configure_screen = new ModifyValuesScreen(false);
+  this->configure_screen->set_parent(this);
+
+  ((ModifyValuesScreen *)this->configure_screen)->addMenuItem("Z Home Ofs",
+    []() -> float { void *rd; PublicData::get_value( endstops_checksum, home_offset_checksum, &rd ); return rd==nullptr ? 0.0F : ((float*)rd)[2]; },
+    [this](float v) { send_gcode("M206", 'Z', v); },
+    0.01F
+    );
+
+  ((ModifyValuesScreen *)this->configure_screen)->addMenuItem("Contrast",
+    []() -> float { return THEPANEL->lcd->getContrast(); },
+    [this](float v) { THEPANEL->lcd->setContrast(v); },
+    1,
+    0,
+    255,
+    true // instant update
+    );
+
 }
 
 void AdvancedScreen::on_enter()
@@ -123,21 +142,22 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
 {
     switch(line) {
       case  0: THEPANEL->enter_screen(this->parent); break;
-	  case  1: send_command("M306Z0");
-		       send_command("M500");
-		       break;
-	  case  2: send_command("M84"); break;
-	  case  3: //this->preheat(); break;
-	  case  4: //this->cooldown(); break;
+      case  1:
+        send_command("M306Z0");
+        send_command("M500");
+        break;
+      case  2: send_command("M84"); break;
+      case  3: this->preheat(); break;
+      case  4: this->cooldown(); break;
       case  5: THEPANEL->enter_screen(this->extruder_screen); break;
       case  6: THEPANEL->enter_screen(this->temperature_screen); break;
-	  case  7: send_command("M303 E0 S220");
-		       break;
-	  case  8: send_command("M303 E1 S100");
-		       break;
-	  case  9: send_command("G28");
-		       send_command("G0Z5F3000"); 
-			   break;
+      case  7: send_command("M303 E0 S220");
+        break;
+      case  8: send_command("M303 E1 S100");
+        break;
+      case  9: send_command("G28");
+        send_command("G0Z5F3000"); 
+        break;
       case 10: THEPANEL->enter_screen(this->jog_screen); break;
       case 11: THEPANEL->enter_screen(this->configure_screen); break;
       case 12: THEPANEL->enter_screen(this->probe_screen); break;
