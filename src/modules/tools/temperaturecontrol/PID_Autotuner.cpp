@@ -8,11 +8,14 @@
 #include "TemperatureControlPublicAccess.h"
 #include "PublicDataRequest.h"
 #include "PublicData.h"
-
+#include "Panel.h"
+#include <unistd.h>
 #include <cmath>        // std::abs
 
 //#define DEBUG_PRINTF s->printf
 #define DEBUG_PRINTF(...)
+#define panel_display_message_checksum CHECKSUM("display_message")
+#define panel_checksum CHECKSUM("panel")
 
 PID_Autotuner::PID_Autotuner()
 {
@@ -90,6 +93,17 @@ void PID_Autotuner::on_gcode_received(void *argument)
 
         } else if (gcode->m == 303 && gcode->has_letter('E')) {
             int pool_index = gcode->get_value('E');
+
+			if (pool_index == 0)
+			{
+				string str = "Tuning HotEnd";
+				PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
+			}
+			else if (pool_index == 1)
+			{
+				string str = "Tuning Heated Bed";
+				PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
+			}
 
             // get the temperature control instance with this pool index
             void *returned_data;
@@ -271,6 +285,10 @@ void PID_Autotuner::finishUp()
 
     THEKERNEL->streams->printf("PID Autotune Complete! The settings above have been loaded into memory, but not written to your config file.\n");
 
+
+	string str = "Altair Ready";
+	PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
+	
 
     // and clean up
     temp_control->target_temperature = 0;

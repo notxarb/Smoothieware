@@ -22,6 +22,9 @@
 
 // deprecated
 #define probe_radius_checksum CHECKSUM("probe_radius")
+#define panel_display_message_checksum CHECKSUM("display_message")
+#define panel_checksum CHECKSUM("panel")
+
 
 bool DeltaCalibrationStrategy::handleConfig()
 {
@@ -46,7 +49,8 @@ bool DeltaCalibrationStrategy::handleGcode(Gcode *gcode)
         if( gcode->g == 32 ) { // auto calibration for delta, Z bed mapping for cartesian
             // first wait for an empty queue i.e. no moves left
             THEKERNEL->conveyor->wait_for_idle();
-
+			string str = "Calibrating Bed";
+			PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
             // turn off any compensation transform as it will be invalidated anyway by this
             THEROBOT->compensationTransform= nullptr;
 
@@ -63,6 +67,8 @@ bool DeltaCalibrationStrategy::handleGcode(Gcode *gcode)
                 }
             }
             gcode->stream->printf("Calibration complete, save settings with M500\n");
+			string strl = "Calibration Complete";
+			PublicData::set_value(panel_checksum, panel_display_message_checksum, &strl);
             return true;
 
         }else if (gcode->g == 29) {
@@ -221,6 +227,8 @@ bool DeltaCalibrationStrategy::calibrate_delta_endstops(Gcode *gcode)
     gcode->stream->printf("center probe: %1.4f\n", dz);
     if(fabsf(dz) > target) {
          gcode->stream->printf("Probe was not repeatable to %f mm, (%f)\n", target, dz);
+		 string str = "Probe Height Failed";
+		 PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
          return false;
     }
 
@@ -328,6 +336,8 @@ bool DeltaCalibrationStrategy::calibrate_delta_radius(Gcode *gcode)
     gcode->stream->printf("center probe: %1.4f\n", dz);
     if(fabsf(dz) > target) {
          gcode->stream->printf("Probe was not repeatable to %f mm, (%f)\n", target, dz);
+		 string str = "Radius Calibate Fail";
+		 PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
          return false;
     }
 
