@@ -58,7 +58,7 @@ bool DeltaCalibrationStrategy::handleGcode(Gcode *gcode)
             if(!gcode->has_letter('R')) {
                 if(!calibrate_delta_endstops(gcode)) {
                     gcode->stream->printf("Calibration failed to complete, check the initial probe height and/or initial_height settings\n");
-					string str = "Calibration #1 Fail";
+					string str = "Calibration #1 Fail"; //Added Screen output to show that Calibration Failed
 					PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
                     return false;
                 }
@@ -66,13 +66,13 @@ bool DeltaCalibrationStrategy::handleGcode(Gcode *gcode)
             if(!gcode->has_letter('E')) {
                 if(!calibrate_delta_radius(gcode)) {
                     gcode->stream->printf("Calibration failed to complete, check the initial probe height and/or initial_height settings\n");
-					string str = "Calibration #2 Fail";
+					string str = "Calibration #2 Fail"; //Added Screen output to show that Calibration Failed
 					PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);
 					return false;
                 }
             }
             gcode->stream->printf("Calibration complete, save settings with M500\n");
-			string strl = "Calibration Complete";
+			string strl = "Calibration Complete"; //Added Screen output to show that Calibration Passed
 			PublicData::set_value(panel_checksum, panel_display_message_checksum, &strl);
             return true;
 
