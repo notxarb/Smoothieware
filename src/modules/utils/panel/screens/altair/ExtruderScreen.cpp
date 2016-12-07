@@ -31,7 +31,7 @@ ExtruderScreen::ExtruderScreen()
 void ExtruderScreen::on_enter()
 {
     THEPANEL->enter_menu_mode();
-    THEPANEL->setup_menu(4);
+    THEPANEL->setup_menu(5);
     this->refresh_menu();
 }
 
@@ -50,8 +50,9 @@ void ExtruderScreen::display_menu_line(uint16_t line)
     switch ( line ) {
         case 0: THEPANEL->lcd->printf("Back");  break;
         case 1: THEPANEL->lcd->printf("Extrude 5mm"); break;
-        case 2: THEPANEL->lcd->printf("Retract 5mm");  break;
-        case 3: THEPANEL->lcd->printf("Settings...");  break;
+        case 2: THEPANEL->lcd->printf("Extrude 100mm"); break;
+        case 3: THEPANEL->lcd->printf("Retract 5mm");  break;
+        case 4: THEPANEL->lcd->printf("Settings...");  break;
     }
 }
 
@@ -60,8 +61,9 @@ void ExtruderScreen::clicked_menu_entry(uint16_t line)
     switch ( line ) {
         case 0: THEPANEL->enter_screen(this->parent); return;
         case 1: send_command("M120\nG91\nG1 E5 F100\nM121"); break;
-        case 2: send_command("M120\nG91\nG1 E-5 F100\nM121"); break;
-        case 3: setupConfigSettings(); break; // lazy load
+        case 2: send_command("M120\nG91\nG1 E100 F100\nM121"); break;
+        case 3: send_command("M120\nG91\nG1 E-5 F100\nM121"); break;
+        case 4: setupConfigSettings(); break; // lazy load
     }
 }
 

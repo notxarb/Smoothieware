@@ -35,19 +35,19 @@ using namespace std;
 
 static float getTargetTemperature(uint16_t heater_cs)
 {
-    struct pad_temperature temp;
-    bool ok = PublicData::get_value( temperature_control_checksum, current_temperature_checksum, heater_cs, &temp );
+  struct pad_temperature temp;
+  bool ok = PublicData::get_value( temperature_control_checksum, current_temperature_checksum, heater_cs, &temp );
 
-    if (ok) {
-        return temp.target_temperature;
-    }
+  if (ok) {
+    return temp.target_temperature;
+  }
 
-    return 0.0F;
+  return 0.0F;
 }
 
 AdvancedScreen::AdvancedScreen()
 {
-    // Children screens
+  // Children screens
   this->extruder_screen    = (new ExtruderScreen()   )->set_parent(this);
   // this->temperature_screen = (new TemperatureScreen())->set_parent(this);
   this->jog_screen         = (new JogScreen()        )->set_parent(this);
