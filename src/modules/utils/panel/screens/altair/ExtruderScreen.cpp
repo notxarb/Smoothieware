@@ -31,7 +31,7 @@ ExtruderScreen::ExtruderScreen()
 void ExtruderScreen::on_enter()
 {
     THEPANEL->enter_menu_mode();
-    THEPANEL->setup_menu(4);
+    THEPANEL->setup_menu(6);
     this->refresh_menu();
 }
 

@@ -27,78 +27,81 @@
 #include "Planner.h"
 #include "StepperMotor.h"
 #include "EndstopsPublicAccess.h"
+#include "ExtruderPublicAccess.h"
 #include "TemperatureControlPublicAccess.h"
 #include "TemperatureControlPool.h"
 
 #include <string>
 using namespace std;
 
+#define extruder_checksum CHECKSUM("extruder")
+
 static float getTargetTemperature(uint16_t heater_cs)
 {
-    struct pad_temperature temp;
-    bool ok = PublicData::get_value( temperature_control_checksum, current_temperature_checksum, heater_cs, &temp );
+  struct pad_temperature temp;
+  bool ok = PublicData::get_value( temperature_control_checksum, current_temperature_checksum, heater_cs, &temp );
 
-    if (ok) {
-        return temp.target_temperature;
-    }
+  if (ok) {
+    return temp.target_temperature;
+  }
 
-    return 0.0F;
+  return 0.0F;
 }
 
 AdvancedScreen::AdvancedScreen()
 {
-    // Children screens
+  // Children screens
   this->extruder_screen    = (new ExtruderScreen()   )->set_parent(this);
   // this->temperature_screen = (new TemperatureScreen())->set_parent(this);
   this->jog_screen         = (new JogScreen()        )->set_parent(this);
   // this->configure_screen   = (new ConfigureScreen()  )->set_parent(this);
   this->probe_screen       = (new ProbeScreen()      )->set_parent(this);
 
-  // Setup the temperature screen
-  this->temperature_screen = new ModifyValuesScreen(false);
-  this->temperature_screen->set_parent(this);
+  // // Setup the temperature screen
+  // this->temperature_screen = new ModifyValuesScreen(false);
+  // this->temperature_screen->set_parent(this);
 
-  int cnt= 0;
-  // returns enabled temperature controllers
-  std::vector<struct pad_temperature> controllers;
-  bool ok = PublicData::get_value(temperature_control_checksum, poll_controls_checksum, &controllers);
-  if (ok) {
-      for (auto &c : controllers) {
-          // rename if two of the known types
-          const char *name;
-          if(c.designator == "T") name= "Hotend";
-          else if(c.designator == "B") name= "Bed";
-          else name= c.designator.c_str();
-          uint16_t i= c.id;
+  // int cnt= 0;
+  // // returns enabled temperature controllers
+  // std::vector<struct pad_temperature> controllers;
+  // bool ok = PublicData::get_value(temperature_control_checksum, poll_controls_checksum, &controllers);
+  // if (ok) {
+  //     for (auto &c : controllers) {
+  //         // rename if two of the known types
+  //         const char *name;
+  //         if(c.designator == "T") name= "Hotend";
+  //         else if(c.designator == "B") name= "Bed";
+  //         else name= c.designator.c_str();
+  //         uint16_t i= c.id;
 
-          ((ModifyValuesScreen *)this->temperature_screen)->addMenuItem(name, // menu name
-              [i]() -> float { return getTargetTemperature(i); }, // getter
-              [i](float t) { PublicData::set_value( temperature_control_checksum, i, &t ); }, // setter
-              1.0F, // increment
-              0.0F, // Min
-              500.0F // Max
-          );
-          cnt++;
-      }
-  }
+  //         ((ModifyValuesScreen *)this->temperature_screen)->addMenuItem(name, // menu name
+  //             [i]() -> float { return getTargetTemperature(i); }, // getter
+  //             [i](float t) { PublicData::set_value( temperature_control_checksum, i, &t ); }, // setter
+  //             1.0F, // increment
+  //             0.0F, // Min
+  //             500.0F // Max
+  //         );
+  //         cnt++;
+  //     }
+  // }
 
-  this->configure_screen = new ModifyValuesScreen(false);
-  this->configure_screen->set_parent(this);
+  // this->configure_screen = new ModifyValuesScreen(false);
+  // this->configure_screen->set_parent(this);
 
-  ((ModifyValuesScreen *)this->configure_screen)->addMenuItem("Z Home Ofs",
-    []() -> float { void *rd; PublicData::get_value( endstops_checksum, home_offset_checksum, &rd ); return rd==nullptr ? 0.0F : ((float*)rd)[2]; },
-    [this](float v) { send_gcode("M206", 'Z', v); },
-    0.01F
-    );
+  // ((ModifyValuesScreen *)this->configure_screen)->addMenuItem("Z Home Ofs",
+  //   []() -> float { void *rd; PublicData::get_value( endstops_checksum, home_offset_checksum, &rd ); return rd==nullptr ? 0.0F : ((float*)rd)[2]; },
+  //   [this](float v) { send_gcode("M206", 'Z', v); },
+  //   0.01F
+  //   );
 
-  ((ModifyValuesScreen *)this->configure_screen)->addMenuItem("Contrast",
-    []() -> float { return THEPANEL->lcd->getContrast(); },
-    [this](float v) { THEPANEL->lcd->setContrast(v); },
-    1,
-    0,
-    255,
-    true // instant update
-    );
+  // ((ModifyValuesScreen *)this->configure_screen)->addMenuItem("Contrast",
+  //   []() -> float { return THEPANEL->lcd->getContrast(); },
+  //   [this](float v) { THEPANEL->lcd->setContrast(v); },
+  //   1,
+  //   0,
+  //   255,
+  //   true // instant update
+  //   );
 
 }
 
@@ -156,19 +159,21 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
 		       THEPANEL->enter_screen(this->parent);
 		       break;
       case  5: THEPANEL->enter_screen(this->extruder_screen); break;
-      case  6: THEPANEL->enter_screen(this->temperature_screen); break;
-	  case  7: send_command("M303 E0 S220");
+      // case  6: THEPANEL->enter_screen(this->temperature_screen); break;
+      case  6: this->setupTemperatureSettings(); break;
+      case  7: send_command("M303 E0 S220");
 		       THEPANEL->enter_screen(this->parent);
-		       break;
-      case  8: send_command("M303 E1 S100"); 
+               break;
+      case  8: send_command("M303 E1 S100");
 		       THEPANEL->enter_screen(this->parent);
-		       break;
+               break;
       case  9: send_command("G28");
                send_command("G0Z5F3000"); 
 			   THEPANEL->enter_screen(this->parent);
 			   break;
       case 10: THEPANEL->enter_screen(this->jog_screen); break;
-      case 11: THEPANEL->enter_screen(this->configure_screen); break;
+      case 11: this->setupConfigSettings(); break;
+      // case 11: THEPANEL->enter_screen(this->configure_screen); break;
       case 12: THEPANEL->enter_screen(this->probe_screen); break;
 	  case 13: send_command("M500");
 		       THEPANEL->enter_screen(this->parent);
@@ -194,4 +199,60 @@ void AdvancedScreen::cooldown()
             PublicData::set_value( temperature_control_checksum, c.id, &t );
         }
     }
+}
+
+void AdvancedScreen::setupTemperatureSettings()
+{
+    // Setup the temperature screen
+    auto mvs = new ModifyValuesScreen(true);
+    mvs->set_parent(this);
+
+    int cnt= 0;
+    // returns enabled temperature controllers
+    std::vector<struct pad_temperature> controllers;
+    bool ok = PublicData::get_value(temperature_control_checksum, poll_controls_checksum, &controllers);
+    if (ok) {
+        for (auto &c : controllers) {
+            // rename if two of the known types
+            const char *name;
+            if(c.designator == "T") name= "Hotend";
+            else if(c.designator == "B") name= "Bed";
+            else name= c.designator.c_str();
+            uint16_t i= c.id;
+
+            mvs->addMenuItem(name, // menu name
+                [i]() -> float { return getTargetTemperature(i); }, // getter
+                [i](float t) { PublicData::set_value( temperature_control_checksum, i, &t ); }, // setter
+                1.0F, // increment
+                0.0F, // Min
+                500.0F // Max
+            );
+          cnt++;
+        }
+    }
+
+    THEPANEL->enter_screen(mvs);
+}
+
+void AdvancedScreen::setupConfigSettings()
+{
+    auto mvs = new ModifyValuesScreen(true);
+    mvs->set_parent(this);
+
+    mvs->addMenuItem("Z Home Ofs",
+        []() -> float { void *rd; PublicData::get_value( endstops_checksum, home_offset_checksum, &rd ); return rd==nullptr ? 0.0F : ((float*)rd)[2]; },
+        [this](float v) { send_gcode("M206", 'Z', v); },
+        0.01F
+    );
+
+    mvs->addMenuItem("Contrast",
+        []() -> float { return THEPANEL->lcd->getContrast(); },
+        [this](float v) { THEPANEL->lcd->setContrast(v); },
+        1,
+        0,
+        255,
+        true // instant update
+    );
+
+    THEPANEL->enter_screen(mvs);
 }

@@ -23,11 +23,13 @@ class AdvancedScreen : public PanelScreen {
 
         void preheat();
         void cooldown();
+        void setupTemperatureSettings();
+        void setupConfigSettings();
 
         PanelScreen* extruder_screen;
-        PanelScreen* temperature_screen;
+        // PanelScreen* temperature_screen;
         PanelScreen* jog_screen;
-        PanelScreen* configure_screen;
+        // PanelScreen* configure_screen;
         PanelScreen* probe_screen;
 
 };
