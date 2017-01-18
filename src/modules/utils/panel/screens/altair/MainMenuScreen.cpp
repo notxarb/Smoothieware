@@ -114,7 +114,7 @@ void MainMenuScreen::clicked_menu_entry(uint16_t line)
             break;
         case 2: THEPANEL->enter_screen(THEPANEL->custom_screen); break;
         case 3: THEPANEL->enter_screen(this->advanced_screen); break;
-        case 4: abort_playing(); break;
+        case 4: abort_playing(); THEPANEL->enter_screen(this->watch_screen); break;
     }
 }
 
