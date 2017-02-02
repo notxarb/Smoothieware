@@ -64,7 +64,7 @@ WatchScreen::~WatchScreen()
 void WatchScreen::on_enter()
 {
     THEPANEL->lcd->clear();
-    THEPANEL->setup_menu(4);
+    THEPANEL->setup_menu(5);
     get_current_status();
     get_current_pos(this->pos);
     get_sd_play_info();
@@ -222,6 +222,17 @@ void WatchScreen::get_sd_play_info()
 void WatchScreen::display_menu_line(uint16_t line)
 {
     // in menu mode
+    string status = this->get_status();
+    string status1;
+    string status2;
+    size_t b = cmd.find_first_of("¿");
+    if ( b == string::npos ) {
+        status1 = status;
+        status2 = "";
+    } else {
+        status1 = status.substr( 0, b );
+        status2 = status.substr( b + 1 );
+    }
     switch ( line ) {
         case 0:
         {
@@ -265,7 +276,8 @@ void WatchScreen::display_menu_line(uint16_t line)
             break;
         }
         case 2: THEPANEL->lcd->printf("%3d%%  %02lu:%02lu:%02lu  %3u%%", this->current_speed, this->elapsed_time / 3600, (this->elapsed_time % 3600) / 60, this->elapsed_time % 60, this->sd_pcnt_played); break;
-        case 3: THEPANEL->lcd->printf("%19s", this->get_status()); break;
+        case 3: THEPANEL->lcd->printf("%19s", status1); break;
+        case 4: THEPANEL->lcd->printf("%19s", status2); break;
     }
 }
 
