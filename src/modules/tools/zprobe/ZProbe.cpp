@@ -56,6 +56,10 @@
 
 #define abs(a) ((a<0) ? -a : a)
 
+
+#define panel_display_message_checksum CHECKSUM("display_message")
+#define panel_checksum CHECKSUM("panel")
+
 void ZProbe::on_module_loaded()
 {
     // if the module is disabled -> do nothing
@@ -256,6 +260,11 @@ void ZProbe::on_gcode_received(void *argument)
             return;
         }
 
+		string str = "Remove Flex Plate¿Press BTN To Cont.";//Added to Test Split Text Functionality
+		PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);//
+
+
+
         if( gcode->g == 30 ) { // simple Z probe
             // first wait for all moves to finish
             THEKERNEL->conveyor->wait_for_idle();
@@ -272,7 +281,6 @@ void ZProbe::on_gcode_received(void *argument)
             if(probe_result) {
                 // the result is in actuator coordinates moved
                 gcode->stream->printf("Z:%1.4f\n", mm);
-
                 if(set_z) {
                     // set current Z to the specified value, shortcut for G92 Znnn
                     char buf[32];

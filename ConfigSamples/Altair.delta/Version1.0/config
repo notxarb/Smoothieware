@@ -65,16 +65,15 @@ second_usb_serial_enable                     false            # This enables a s
 
 
 # Extruder module configuration
-extruder.hotend.enable                       true             # Whether to activate the extruder module at all. All configuration is ignored if false
-extruder.hotend.steps_per_mm                 180.28            # Steps per mm for extruder stepper
-extruder.hotend.default_feed_rate            600              # Default rate ( mm/minute ) for moves where only the extruder moves
-extruder.hotend.acceleration                 800              # Acceleration in mm/sec^2 only used for retracts
-extruder.hotend.max_speed                    120              # mm/sec NOTE only used for retracts
-
-
-extruder.hotend.step_pin                     2.0              # Pin for extruder step signal
-extruder.hotend.dir_pin                      0.5              # Pin for extruder dir signal
-extruder.hotend.en_pin                       0.4              # Pin for extruder enable signal
+extruder.hotend.enable                       true             # Whether to activate the extruder module at all. All configuration is ignored if false 
+extruder.hotend.steps_per_mm                 94.9             # Steps per mm for extruder stepper 
+extruder.hotend.default_feed_rate            600              # Default rate ( mm/minute ) for moves where only the extruder moves 
+extruder.hotend.acceleration                 800              # Acceleration in mm/sec^2, only used for retracts 
+extruder.hotend.max_speed                    120              # mm/sec NOTE only used for retracts 
+ 
+extruder.hotend.step_pin                     2.0              # Pin for extruder step signal 
+extruder.hotend.dir_pin                      0.5!              # Pin for extruder dir signal 
+extruder.hotend.en_pin                       0.4              # Pin for extruder enable signal 
 delta_current                                1.6              # Extruder stepper motor current
 
 # Hotend temperature control configuration
