@@ -225,7 +225,7 @@ void WatchScreen::display_menu_line(uint16_t line)
     string status = this->get_status();
     string status1;
     string status2;
-    size_t b = cmd.find_first_of("¿");
+    size_t b = status.find_first_of("¿");
     if ( b == string::npos ) {
         status1 = status;
         status2 = "";
@@ -276,8 +276,8 @@ void WatchScreen::display_menu_line(uint16_t line)
             break;
         }
         case 2: THEPANEL->lcd->printf("%3d%%  %02lu:%02lu:%02lu  %3u%%", this->current_speed, this->elapsed_time / 3600, (this->elapsed_time % 3600) / 60, this->elapsed_time % 60, this->sd_pcnt_played); break;
-        case 3: THEPANEL->lcd->printf("%19s", status1); break;
-        case 4: THEPANEL->lcd->printf("%19s", status2); break;
+        case 3: THEPANEL->lcd->printf("%19s", status1.c_str()); break;
+        case 4: THEPANEL->lcd->printf("%19s", status2.c_str()); break;
     }
 }
 
