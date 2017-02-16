@@ -38,6 +38,7 @@ private:
     unsigned long elapsed_time;
     unsigned int sd_pcnt_played;
     char *ipstr;
+    char *message;
 
     struct {
         bool speed_changed:1;

@@ -53,12 +53,14 @@ WatchScreen::WatchScreen()
     speed_changed = false;
     issue_change_speed = false;
     ipstr = nullptr;
+    message = nullptr;
     update_counts= 0;
 }
 
 WatchScreen::~WatchScreen()
 {
     delete[] ipstr;
+    delete[] message;
 }
 
 void WatchScreen::on_enter()
@@ -302,7 +304,15 @@ const char *WatchScreen::get_status()
     if (ip == NULL) {
         return "Altair Ready";
     } else {
-        return ip;
+        if (this->message != nullptr) {
+            delete[] this->message;
+            this->message = nullptr;
+        }
+        char buf[32];
+        int n = snprintf(buf, sizeof(buf), "Altair Ready¿%s", ip);
+        this->message = new char[n + 1];
+        strcpy(this->message, buf);
+        return this->message;
     }
 }
 
@@ -317,13 +327,15 @@ const char *WatchScreen::get_network()
 
     bool ok = PublicData::get_value( network_checksum, get_ip_checksum, &returned_data );
     if (ok) {
+        if (this->ipstr != nullptr) {
+            delete[] this->ipstr;
+            this->ipstr = nullptr;
+        }
         uint8_t *ipaddr = (uint8_t *)returned_data;
         char buf[20];
         int n = snprintf(buf, sizeof(buf), "IP %d.%d.%d.%d", ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
         buf[n] = 0;
-        if (this->ipstr == nullptr) {
-            this->ipstr = new char[n + 1];
-        }
+        this->ipstr = new char[n + 1];
         strcpy(this->ipstr, buf);
 
         return this->ipstr;
