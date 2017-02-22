@@ -227,7 +227,7 @@ void WatchScreen::display_menu_line(uint16_t line)
     string status = this->get_status();
     string status1;
     string status2;
-    size_t b = status.find_first_of("¿");
+    size_t b = status.find_first_of("\xBF");
     if ( b == string::npos ) {
         status1 = status;
         status2 = "";
@@ -309,7 +309,7 @@ const char *WatchScreen::get_status()
             this->message = nullptr;
         }
         char buf[32];
-        int n = snprintf(buf, sizeof(buf), "Altair Ready¿%s", ip);
+        int n = snprintf(buf, sizeof(buf), "Altair Ready\xBF%s", ip);
         this->message = new char[n + 1];
         strcpy(this->message, buf);
         return this->message;
