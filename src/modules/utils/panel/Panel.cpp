@@ -301,11 +301,13 @@ void Panel::on_set_public_data(void *argument)
     if(!pdr->second_element_is(panel_display_message_checksum)) return;
 
     string *s = static_cast<string *>(pdr->get_data_ptr());
-    if (s->size() > 20) {
-        this->message = s->substr(0, 20);
-    } else {
+    // #ifndef ALTAIR
+    // if (s->size() > 20) {
+    //     this->message = s->substr(0, 20);
+    // } else {
         this->message= *s;
-    }
+    // }
+    // #endif
 }
 
 // on main loop, we can send gcodes or do anything that waits in this loop

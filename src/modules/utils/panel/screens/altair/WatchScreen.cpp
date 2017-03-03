@@ -121,7 +121,7 @@ void WatchScreen::on_refresh()
     update_counts++;
     if ( update_counts % 20 == 0 ) {
         string status = this->get_status();
-        if (status.size() > 17) {
+        if (status.size() > 20) {
             this->message_offset = (this->message_offset + 1) % status.size();
         } else {
             this->message_offset = 0;
@@ -233,8 +233,8 @@ void WatchScreen::display_menu_line(uint16_t line)
 
     string status = this->get_status();
     string status1;
-    if (status.size() > 17) {
-        status1 = status.substr(this->message_offset, this->message_offset + 17);
+    if (status.size() > 20) {
+        status1 = status.substr((this->message_offset < (status.size() - 20)) ? this->message_offset : status.size() - 20, 20);
     } else {
         status1 = status;
     }
