@@ -39,6 +39,7 @@ private:
     unsigned int sd_pcnt_played;
     char *ipstr;
     char *message;
+    int message_offset;
 
     struct {
         bool speed_changed:1;

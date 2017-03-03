@@ -55,6 +55,7 @@ WatchScreen::WatchScreen()
     ipstr = nullptr;
     message = nullptr;
     update_counts= 0;
+    message_offset = 0;
 }
 
 WatchScreen::~WatchScreen()
@@ -119,6 +120,12 @@ void WatchScreen::on_refresh()
     // Update Only every 20 refreshes, 1 a second
     update_counts++;
     if ( update_counts % 20 == 0 ) {
+        string status = this->get_status();
+        if (status.size() > 17) {
+            this->message_offset = (this->message_offset + 1) % status.size();
+        } else {
+            this->message_offset = 0;
+        }
         get_sd_play_info();
         get_current_pos(this->pos);
         get_current_status();
@@ -223,18 +230,36 @@ void WatchScreen::get_sd_play_info()
 
 void WatchScreen::display_menu_line(uint16_t line)
 {
-    // in menu mode
+
     string status = this->get_status();
     string status1;
-    string status2;
-    size_t b = status.find_first_of("\xBF");
-    if ( b == string::npos ) {
-        status1 = status;
-        status2 = "";
+    if (status.size() > 17) {
+        status1 = status.substr(this->message_offset, this->message_offset + 17);
     } else {
-        status1 = status.substr( 0, b );
-        status2 = status.substr( b + 1 );
+        status1 = status;
     }
+
+    // for (i = 0; i <= strlen(status); i++)
+    // {
+    //     status1 = status.substr(0 + i, 17 + i);
+    //     if (strlen(status) == 17 + i)
+    //     {
+    //         i = 0;
+    //     }
+    // }
+
+    // in menu mode
+    // string status = this->get_status();
+    // string status1;
+    // string status2;
+    // size_t b = status.find_first_of("\xBF");
+    // if ( b == string::npos ) {
+    //     status1 = status;
+    //     status2 = "";
+    // } else {
+    //     status1 = status.substr( 0, b );
+    //     status2 = status.substr( b + 1 );
+    // }
     switch ( line ) {
         case 0:
         {
@@ -279,7 +304,7 @@ void WatchScreen::display_menu_line(uint16_t line)
         }
         case 2: THEPANEL->lcd->printf("%3d%%  %02lu:%02lu:%02lu  %3u%%", this->current_speed, this->elapsed_time / 3600, (this->elapsed_time % 3600) / 60, this->elapsed_time % 60, this->sd_pcnt_played); break;
         case 3: THEPANEL->lcd->printf("%19s", status1.c_str()); break;
-        case 4: THEPANEL->lcd->printf("%19s", status2.c_str()); break;
+        // case 4: THEPANEL->lcd->printf("%19s", status2.c_str()); break;
     }
 }
 
