@@ -226,14 +226,26 @@ void WatchScreen::display_menu_line(uint16_t line)
     // in menu mode
     string status = this->get_status();
     string status1;
-    string status2;
-    size_t b = status.find_first_of("¿");
-    if ( b == string::npos ) {
-        status1 = status;
-        status2 = "";
-    } else {
-        status1 = status.substr( 0, b );
-        status2 = status.substr( b + 1 );
+	for (i = 0; i <= strlen(status); i++)
+	{
+		status1 = status.substr(0 + i, 17 + i);
+		if (strlen(status) == 17 + i)
+		{
+			i = 0;
+		}
+		else
+		{
+			for (j = 0; j <= 10000; j++)
+		}
+	}
+   // string status2;
+    //size_t b = status.find_first_of("¿");
+    //if ( b == string::npos ) {
+     //   status1 = status;
+       // status2 = "";
+   // } else {
+     //   status1 = status.substr( 0, b );
+       // status2 = status.substr( b - 3 );
     }
     switch ( line ) {
         case 0:

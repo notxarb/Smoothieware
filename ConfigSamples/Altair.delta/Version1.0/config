@@ -205,9 +205,9 @@ after_suspend_gcode 	G91_G0E-5_G90_G0Z260                     #
 before_resume_gcode 	G91_G1E1_G90                             #
 leave_heaters_on_suspend true                                    #
 
-custom_menu.InsertFil.enable                 true                #
-custom_menu.InsertFil.name                   Home_All_Axis       # 
-custom_menu.InsertFil.command                G28                 #
+custom_menu.HomeAllAxis.enable               true                #
+custom_menu.HomeAllAxis.name                 Home_All_Axis       # 
+custom_menu.HomeAllAxis.command              G28                 #
 
 custom_menu.InsertFil.enable                 true                #
 custom_menu.InsertFil.name                   Insert_New_Filament # 

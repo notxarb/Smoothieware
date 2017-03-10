@@ -126,18 +126,18 @@ void AdvancedScreen::display_menu_line(uint16_t line)
 {
     switch(line) {
       case  0: THEPANEL->lcd->printf("Back"); break;
-      case  1: THEPANEL->lcd->printf("Set Bed Height"); break;
-      case  2: THEPANEL->lcd->printf("Motors Off"); break;
-      case  3: THEPANEL->lcd->printf("Preheat"); break;
-      case  4: THEPANEL->lcd->printf("Cool Down"); break;
-      case  5: THEPANEL->lcd->printf("Extruder"); break;
-      case  6: THEPANEL->lcd->printf("Set Temperature"); break;
-      case  7: THEPANEL->lcd->printf("Set Hot End PID"); break;
-      case  8: THEPANEL->lcd->printf("Set Bed PID"); break;
-      case  9: THEPANEL->lcd->printf("Go To Z5"); break;
-      case 10: THEPANEL->lcd->printf("Jog"); break;
-      case 11: THEPANEL->lcd->printf("Configure"); break;
-      case 12: THEPANEL->lcd->printf("Probe"); break;
+      case  1: THEPANEL->lcd->printf("Motors Off"); break;
+      case  2: THEPANEL->lcd->printf("Preheat"); break;
+      case  3: THEPANEL->lcd->printf("Cool Down"); break;
+      case  4: THEPANEL->lcd->printf("Extruder"); break;
+      case  5: THEPANEL->lcd->printf("Set Temperature"); break;
+      case  6: THEPANEL->lcd->printf("Set Hot End PID"); break;
+      case  7: THEPANEL->lcd->printf("Set Bed PID"); break;
+      case  8: THEPANEL->lcd->printf("Go To Z5"); break;
+      case  9: THEPANEL->lcd->printf("Jog"); break;
+      case 10: THEPANEL->lcd->printf("Configure"); break;
+      case 11: THEPANEL->lcd->printf("Probe"); break;
+	  case 12: THEPANEL->lcd->printf("Set Bed Height"); break;
 	  case 13: THEPANEL->lcd->printf("Save Settings"); break;
     }
 }
@@ -146,35 +146,35 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
 {
     switch(line) {
       case  0: THEPANEL->enter_screen(this->parent); break;
-      case  1:send_command("M306Z0");
-		      THEPANEL->enter_screen(this->parent);
-		      break;
-      case  2: send_command("M84");
+      case  1: send_command("M84");
 		       THEPANEL->enter_screen(this->parent);
 		       break;
-	  case  3: this->preheat(); 
+	  case  2: this->preheat(); 
 		       THEPANEL->enter_screen(this->parent);
 		       break;
-      case  4: this->cooldown(); 
+      case  3: this->cooldown(); 
 		       THEPANEL->enter_screen(this->parent);
 		       break;
-      case  5: THEPANEL->enter_screen(this->extruder_screen); break;
+      case  4: THEPANEL->enter_screen(this->extruder_screen); break;
       // case  6: THEPANEL->enter_screen(this->temperature_screen); break;
-      case  6: this->setupTemperatureSettings(); break;
-      case  7: send_command("M303 E0 S220");
+      case  5: this->setupTemperatureSettings(); break;
+      case  6: send_command("M303 E0 S220");
 		       THEPANEL->enter_screen(this->parent);
                break;
-      case  8: send_command("M303 E1 S100");
+      case  7: send_command("M303 E1 S100");
 		       THEPANEL->enter_screen(this->parent);
                break;
-      case  9: send_command("G28");
+      case  8: send_command("G28");
                send_command("G0Z5F3000"); 
 			   THEPANEL->enter_screen(this->parent);
 			   break;
-      case 10: THEPANEL->enter_screen(this->jog_screen); break;
-      case 11: this->setupConfigSettings(); break;
+      case  9: THEPANEL->enter_screen(this->jog_screen); break;
+      case 10: this->setupConfigSettings(); break;
       // case 11: THEPANEL->enter_screen(this->configure_screen); break;
-      case 12: THEPANEL->enter_screen(this->probe_screen); break;
+      case 11: THEPANEL->enter_screen(this->probe_screen); break;
+	  case 12: send_command("M306Z0");
+		       THEPANEL->enter_screen(this->parent);
+		       break;
 	  case 13: send_command("M500");
 		       THEPANEL->enter_screen(this->parent);
 		       break;
