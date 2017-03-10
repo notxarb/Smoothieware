@@ -137,8 +137,8 @@ void AdvancedScreen::display_menu_line(uint16_t line)
       case  9: THEPANEL->lcd->printf("Jog"); break;
       case 10: THEPANEL->lcd->printf("Configure"); break;
       case 11: THEPANEL->lcd->printf("Probe"); break;
-	  case 12: THEPANEL->lcd->printf("Set Bed Height"); break;
-	  case 13: THEPANEL->lcd->printf("Save Settings"); break;
+	    case 12: THEPANEL->lcd->printf("Set Bed Height"); break;
+	    case 13: THEPANEL->lcd->printf("Save Settings"); break;
     }
 }
 
@@ -149,7 +149,7 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
       case  1: send_command("M84");
 		       THEPANEL->enter_screen(this->parent);
 		       break;
-	  case  2: this->preheat(); 
+	    case  2: this->preheat(); 
 		       THEPANEL->enter_screen(this->parent);
 		       break;
       case  3: this->cooldown(); 
@@ -171,8 +171,11 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
       case  9: THEPANEL->enter_screen(this->jog_screen); break;
       case 10: this->setupConfigSettings(); break;
       // case 11: THEPANEL->enter_screen(this->configure_screen); break;
-      case 12: ((ProbeScreen *)this->probe_screen)->set_watch_screen(this->watch_screen); THEPANEL->enter_screen(this->probe_screen); break;
-	  case 13: send_command("M500");
+      case 11: ((ProbeScreen *)this->probe_screen)->set_watch_screen(this->watch_screen); THEPANEL->enter_screen(this->probe_screen); break;
+      case 12: send_command("M306Z0");
+           THEPANEL->enter_screen(this->parent);
+           break;
+	    case 13: send_command("M500");
 		       THEPANEL->enter_screen(this->parent);
 		       break;
     }
