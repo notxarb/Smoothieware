@@ -55,8 +55,10 @@
 #define STEPS_PER_MM(a) (STEPPER[a]->get_steps_per_mm())
 #define Z_STEPS_PER_MM STEPS_PER_MM(Z_AXIS)
 
-#define panel_display_message_checksum CHECKSUM("display_message")
-#define panel_checksum CHECKSUM("panel")
+// #define panel_display_message_checksum CHECKSUM("display_message")
+// #define panel_queue_message_checksum CHECKSUM("queue_message")
+// #define panel_queue_command_checksum CHECKSUM("queue_command")
+// #define panel_checksum CHECKSUM("panel")
 
 void ZProbe::on_module_loaded()
 {
@@ -271,8 +273,8 @@ void ZProbe::on_gcode_received(void *argument)
             return;
         }
 
-		string str = "Remove Flex Plate¿Press BTN To Cont.";//Added to Test Split Text Functionality
-		PublicData::set_value(panel_checksum, panel_display_message_checksum, &str);//
+		// string str = "Remove Flex Plate Press Button To Continue";//Added to Test Split Text Functionality
+		// PublicData::set_value(panel_checksum, panel_queue_message_checksum, &str);//
 
 
 

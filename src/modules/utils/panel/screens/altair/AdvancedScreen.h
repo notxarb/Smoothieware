@@ -17,6 +17,7 @@ class AdvancedScreen : public PanelScreen {
         void on_enter();
         void display_menu_line(uint16_t line);
         void clicked_menu_entry(uint16_t line);
+        void set_watch_screen(PanelScreen *watch_screen) {this->watch_screen = watch_screen; return;};
         friend class Panel;
 
     private:
@@ -31,6 +32,7 @@ class AdvancedScreen : public PanelScreen {
         PanelScreen* jog_screen;
         // PanelScreen* configure_screen;
         PanelScreen* probe_screen;
+        PanelScreen* watch_screen;
 
 };
 

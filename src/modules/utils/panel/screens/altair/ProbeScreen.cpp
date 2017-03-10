@@ -8,6 +8,9 @@
 #include "ProbeScreen.h"
 #include "libs/Kernel.h"
 #include "libs/SerialMessage.h"
+#include "checksumm.h"
+#include "PublicDataRequest.h"
+#include "PublicData.h"
 #include "Panel.h"
 #include "PanelScreen.h"
 #include "LcdBase.h"
@@ -17,6 +20,11 @@
 #include "Gcode.h"
 
 #include <string>
+
+#define panel_display_message_checksum CHECKSUM("display_message")
+#define panel_queue_message_checksum CHECKSUM("queue_message")
+#define panel_queue_command_checksum CHECKSUM("queue_command")
+#define panel_checksum CHECKSUM("panel")
 
 using namespace std;
 
@@ -77,9 +85,16 @@ void ProbeScreen::clicked_menu_entry(uint16_t line)
 {
     this->do_status= false;
     switch ( line ) {
-        case 0: THEPANEL->enter_screen(this->parent); return;
+        case 0: THEPANEL->enter_screen(this->parent); break;
         case 1: this->do_status= true; this->tcnt= 1; break;
-        case 2: this->do_probe= true; break;
+        case 2: 
+            // this->do_probe= true; 
+            string str = "Remove Flex Plate Press Button To Continue";//Added to Test Split Text Functionality
+            PublicData::set_value(panel_checksum, panel_queue_message_checksum, &str);//
+            string cmd = "G30";
+            PublicData::set_value(panel_checksum, panel_queue_command_checksum, &cmd);//
+            THEPANEL->enter_screen(this->watch_screen);
+        break;
     }
 }
 

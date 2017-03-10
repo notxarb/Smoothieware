@@ -39,6 +39,7 @@ MainMenuScreen::MainMenuScreen()
     this->file_screen     = (new FileScreen()     )->set_parent(this);
     this->watch_screen    = (new WatchScreen()    )->set_parent(this);
     this->set_parent(this->watch_screen);
+    ((AdvancedScreen *)this->advanced_screen)->set_watch_screen(this->watch_screen);
 }
 
 void MainMenuScreen::on_enter()

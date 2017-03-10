@@ -22,6 +22,7 @@ class ProbeScreen : public PanelScreen {
         void display_menu_line(uint16_t line);
         void clicked_menu_entry(uint16_t line);
         int idle_timeout_secs() { return 120; }
+        void set_watch_screen(PanelScreen *watch_screen) {this->watch_screen = watch_screen; return;};
 
     private:
       int tcnt;
@@ -31,6 +32,8 @@ class ProbeScreen : public PanelScreen {
         bool do_status:1;
         bool new_result:1;
       };
+
+      PanelScreen* watch_screen;
 };
 
 #endif
