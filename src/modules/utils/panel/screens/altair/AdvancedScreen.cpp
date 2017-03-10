@@ -174,7 +174,7 @@ void AdvancedScreen::clicked_menu_entry(uint16_t line)
       case 10: THEPANEL->enter_screen(this->jog_screen); break;
       case 11: this->setupConfigSettings(); break;
       // case 11: THEPANEL->enter_screen(this->configure_screen); break;
-      case 12: THEPANEL->enter_screen(this->probe_screen); break;
+      case 12: ((ProbeScreen *)this->probe_screen)->set_watch_screen(this->watch_screen); THEPANEL->enter_screen(this->probe_screen); break;
 	  case 13: send_command("M500");
 		       THEPANEL->enter_screen(this->parent);
 		       break;
@@ -236,14 +236,15 @@ void AdvancedScreen::setupTemperatureSettings()
 
 void AdvancedScreen::setupConfigSettings()
 {
-    auto mvs = new ModifyValuesScreen(true);
+    // This comes from the 3dprinter/MainMenuScreen.cpp
+    auto mvs= new ModifyValuesScreen(true); // delete itself on exit
     mvs->set_parent(this);
 
     mvs->addMenuItem("Z Home Ofs",
-        []() -> float { void *rd; PublicData::get_value( endstops_checksum, home_offset_checksum, &rd ); return rd==nullptr ? 0.0F : ((float*)rd)[2]; },
+        []() -> float { float rd[3]; PublicData::get_value( endstops_checksum, home_offset_checksum, rd ); return rd[2]; },
         [this](float v) { send_gcode("M206", 'Z', v); },
         0.01F
-    );
+        );
 
     mvs->addMenuItem("Contrast",
         []() -> float { return THEPANEL->lcd->getContrast(); },
@@ -252,7 +253,7 @@ void AdvancedScreen::setupConfigSettings()
         0,
         255,
         true // instant update
-    );
+        );
 
     THEPANEL->enter_screen(mvs);
 }

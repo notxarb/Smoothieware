@@ -85,7 +85,7 @@ void ProbeScreen::clicked_menu_entry(uint16_t line)
 {
     this->do_status= false;
     switch ( line ) {
-        case 0: THEPANEL->enter_screen(this->parent); return;
+        case 0: THEPANEL->enter_screen(this->parent); break;
         case 1: this->do_status= true; this->tcnt= 1; break;
         case 2: 
             // this->do_probe= true; 
@@ -93,6 +93,7 @@ void ProbeScreen::clicked_menu_entry(uint16_t line)
             PublicData::set_value(panel_checksum, panel_queue_message_checksum, &str);//
             string cmd = "G30";
             PublicData::set_value(panel_checksum, panel_queue_command_checksum, &cmd);//
+            THEPANEL->enter_screen(this->watch_screen);
         break;
     }
 }
