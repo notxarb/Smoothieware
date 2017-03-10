@@ -21,6 +21,7 @@ public:
     void on_enter();
     void on_main_loop();
     void display_menu_line(uint16_t line);
+    void on_set_public_data(void* argument);
 
 private:
     void get_current_status();

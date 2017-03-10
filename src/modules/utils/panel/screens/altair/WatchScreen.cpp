@@ -98,8 +98,14 @@ void WatchScreen::on_refresh()
 {
     // Exit if the button is clicked
     if ( THEPANEL->click() ) {
-        THEPANEL->enter_screen(this->parent);
-        return;
+        if (THEPANEL->hasQueueCommand()) {
+            send_command(THEPANEL->getQueueCommand().c_str());
+            // clear out the queue command and the queue message
+            
+        } else {
+            THEPANEL->enter_screen(this->parent);
+            return;
+        }
     }
 
     // see if speed is being changed
@@ -310,6 +316,8 @@ void WatchScreen::display_menu_line(uint16_t line)
 
 const char *WatchScreen::get_status()
 {
+    if (THEPANEL->hasQueueMessage())
+        return THEPANEL->getQueueMessage().c_str();
     if (THEPANEL->hasMessage())
         return THEPANEL->getMessage().c_str();
 

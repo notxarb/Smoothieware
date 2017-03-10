@@ -77,6 +77,11 @@ class Panel : public Module {
 
         std::string getMessage() { return message; }
         bool hasMessage() { return message.size() > 0; }
+        std::string getQueueMessage() { return queue_message; }
+        bool hasQueueMessage() { return queue_message.size() > 0; }
+        std::string getQueueCommand() { return queue_command; }
+        bool hasQueueCommand() { return queue_command.size() > 0; }
+
 
         uint16_t get_screen_lines() const { return screen_lines; }
 
@@ -135,6 +140,8 @@ class Panel : public Module {
         float default_bed_temperature;
 
         std::string message;
+        std::string queue_message;
+        std::string queue_command;
         encoder_cb_t encoder_cb_fnc;
 
         char playing_file[20];

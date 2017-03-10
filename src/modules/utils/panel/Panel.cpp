@@ -65,6 +65,8 @@
 #define hotend_temp_checksum       CHECKSUM("hotend_temperature")
 #define bed_temp_checksum          CHECKSUM("bed_temperature")
 #define panel_display_message_checksum CHECKSUM("display_message")
+#define panel_queue_message_checksum CHECKSUM("queue_message")
+#define panel_queue_command_checksum CHECKSUM("queue_command")
 #define laser_checksum             CHECKSUM("laser")
 #define display_extruder_checksum  CHECKSUM("display_extruder")
 
@@ -298,16 +300,29 @@ void Panel::on_set_public_data(void *argument)
 
     if(!pdr->starts_with(panel_checksum)) return;
 
-    if(!pdr->second_element_is(panel_display_message_checksum)) return;
+    // if(!pdr->second_element_is(panel_display_message_checksum)) return;
+    if (pdr->second_element_is(panel_display_message_checksum)) {
+        string *s = static_cast<string *>(pdr->get_data_ptr());
+        if (s->size() > 20) {
+            this->message = s->substr(0, 20);
+        } else {
+            this->message= *s;
+        }
+        return;
+    }
+    if (pdr->second_element_is(panel_queue_message_checksum)) {
+        string *s = static_cast<string *>(pdr->get_data_ptr());
+        this->queue_message= *s;
+        return;
+    }
+    if (pdr->second_element_is(panel_queue_command_checksum)) {
+        string *s = static_cast<string *>(pdr->get_data_ptr());
+        this->queue_command= *s;
+        return;
+    }
 
-    string *s = static_cast<string *>(pdr->get_data_ptr());
-    // #ifndef ALTAIR
-    // if (s->size() > 20) {
-    //     this->message = s->substr(0, 20);
-    // } else {
-        this->message= *s;
-    // }
-    // #endif
+
+
 }
 
 // on main loop, we can send gcodes or do anything that waits in this loop
