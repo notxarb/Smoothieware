@@ -24,6 +24,10 @@
 #include "TemperatureControlPool.h"
 #include "ExtruderPublicAccess.h"
 
+#define panel_display_message_checksum CHECKSUM("display_message")
+#define panel_queue_message_checksum CHECKSUM("queue_message")
+#define panel_queue_command_checksum CHECKSUM("queue_command")
+#define panel_checksum CHECKSUM("panel")
 
 #include <math.h>
 #include <string.h>
@@ -101,7 +105,10 @@ void WatchScreen::on_refresh()
         if (THEPANEL->hasQueueCommand()) {
             send_command(THEPANEL->getQueueCommand().c_str());
             // clear out the queue command and the queue message
-            
+            string str = "";
+            PublicData::set_value(panel_checksum, panel_queue_message_checksum, &str);//
+            string cmd = "";
+            PublicData::set_value(panel_checksum, panel_queue_command_checksum, &cmd);//
         } else {
             THEPANEL->enter_screen(this->parent);
             return;
